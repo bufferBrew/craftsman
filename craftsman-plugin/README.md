@@ -4,7 +4,7 @@
 
 # craftsman
 
-A Claude Code plugin bundling a complete agent set, five skills, two slash commands, and a
+A Claude Code plugin bundling a complete agent set, six skills, two slash commands, and a
 cross-platform hook system that together enforce a set of engineering-discipline defaults:
 
 - **Minimal-diff code** — the smallest change that solves the problem, nothing beyond the request
@@ -25,7 +25,7 @@ cross-platform hook system that together enforce a set of engineering-discipline
 craftsman-plugin/
 ├── .claude-plugin/plugin.json    Plugin manifest
 ├── agents/                       Ten agents (see Agents reference)
-├── skills/                       Five skills (see Skills reference)
+├── skills/                       Six skills (see Skills reference)
 ├── commands/
 │   ├── init.md                   /craftsman:init — project scaffolder
 │   └── quick.md                  /craftsman:quick — small-change fast path
@@ -77,7 +77,7 @@ Or from inside a session: `/plugin marketplace add bufferBrew/craftsman` then
 
 Restart Claude Code (or start a new session) after installing. Verify with `claude plugin list`
 and inspect the loaded components with `claude plugin details craftsman` — it should report
-10 agents, 7 skills (the 5 skills plus the 2 commands), and 2 hook events (SessionStart,
+10 agents, 8 skills (the 6 skills plus the 2 commands), and 2 hook events (SessionStart,
 PreToolUse), with an always-on cost of roughly 1.2k tokens per session.
 
 ### Option C — install from a local marketplace checkout
@@ -179,7 +179,8 @@ Invoke any agent with `@<name> <task>` or let `@orchestrator` route for you.
 **Orchestrator pipelines** (chosen automatically by task type):
 
 - `quick` → `coder` alone
-- `feature` → `researcher?` → `planner` → `coder` → `tester` → `reviewer` → `docs-writer?`
+- `feature` → *ideation gate* (if underspecified, main-thread `ideation-first` skill produces a
+  scope brief first) → `researcher?` → `planner` → `coder` → `tester` → `reviewer` → `docs-writer?`
 - `bugfix` → `debugger` (read-only root-cause 4-phase method + quirks/KNOWN_ISSUES/graphify; hands
   off fix location + repro recipe) → `coder` → `tester` → `reviewer`
 - `refactor` → `planner` → `coder` → `reviewer` → `tester`
@@ -196,6 +197,7 @@ directly.
 
 | Skill | When it applies |
 |---|---|
+| `ideation-first` | Before planning a new feature or greenfield refactor whose requirements aren't pinned down. Asks 3–5 clarifying questions one at a time, then emits a **Scope brief** (Goal / In scope / Out of scope / Key decisions / Open questions) the planner builds on. Skipped for well-specified requests, `quick`, and `bugfix`. Runs in the main thread (interactive); `@orchestrator` gates on the brief's presence rather than running it itself. |
 | `smallest-change-first` | Before writing any new code/file/dependency. Seven-step ladder: needs to exist? → already in codebase? → stdlib? → platform feature? → existing dependency? → one line? → only then write the minimum. Source of the "ask before anything extra" rule. |
 | `logging-tradeoffs` | When taking a deliberate shortcut, investigating a possibly-logged bug, or resolving an entry. Defines the `KNOWN_ISSUES.md` format: what changed / ceiling / upgrade trigger / status. |
 | `environment-memory` | Before retrying anything that failed once; after discovering an OS/shell/tool quirk. Reads/appends `~/.claude/craftsman-memory/environment-quirks.md`. |

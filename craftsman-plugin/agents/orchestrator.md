@@ -79,6 +79,12 @@ researcher (only if APIs, libraries, or MCP-server coverage are unknown)
   → reviewer
   → docs-writer (only if public API surface changed)
 ```
+**Ideation gate (before planner):** if the request is underspecified — goal, boundaries, or
+success criteria open to interpretation — and no **Scope brief** was supplied in your invocation,
+**stop**. You are a subagent and cannot hold the interactive Q&A this needs. Instruct the caller to
+run the `ideation-first` skill in the main thread first, then re-invoke you with the resulting scope
+brief. Do **not** dispatch the planner against guesses. When a scope brief *is* present (or the
+request is already well-specified), proceed and pass the brief into the planner's prompt verbatim.
 
 **feature (Android)**
 ```
@@ -92,30 +98,31 @@ researcher (optional)
 
 **bugfix (generic)**
 ```
-debugger → tester → reviewer
+debugger → coder → tester → reviewer
 ```
-The `debugger` runs the full root-cause method and applies the fix, so it absorbs the
-planner+coder role for bug tasks. Its dispatch prompt MUST include: "Do not propose a fix until root
-cause is established — reproduce, gather evidence, isolate the cause first (use the superpowers
-systematic-debugging skill where that plugin is installed). Check
+The read-only `debugger` establishes root cause and hands off a fix location + reproduction recipe;
+`coder` applies the minimal fix. The `debugger`'s dispatch prompt MUST include: "Do not name a fix
+until root cause is established — reproduce, gather evidence, isolate the cause first (use the
+superpowers systematic-debugging skill where that plugin is installed). Check
 `~/.claude/craftsman-memory/environment-quirks.md` and the project's `KNOWN_ISSUES.md` first for a
 previously-tried or previously-logged approach. If the project has `graphify-out/graph.json`, use
-the `graphify-recurring-bugs` skill during investigation before falling back to raw grep." The
-follow-on `tester` broadens regression coverage beyond the debugger's failing test; `reviewer`
-checks the fix.
+the `graphify-recurring-bugs` skill during investigation before falling back to raw grep." Pass the
+debugger's diagnosis (root cause, fix location, failing-test spec) into the `coder` prompt.
 
 **bugfix (Android)**
 ```
-debugger → android-tester → compose-reviewer
+debugger → android-feature → android-tester → compose-reviewer
 ```
-Same root-cause/graphify instruction as generic bugfix, in the `debugger` prompt. If the fix turns
-out to be a Compose UI-layer change, route the implementation to `android-feature` instead — the
-`debugger` still owns the root-cause diagnosis and hands off the exact fix location.
+Same root-cause/graphify instruction as generic bugfix, in the `debugger` prompt. `debugger` owns
+the diagnosis; `android-feature` applies the fix (it handles Compose UI-layer changes correctly).
 
 **refactor**
 ```
 planner → coder → reviewer → tester
 ```
+The ideation gate above also applies to a *greenfield* refactor whose target shape is
+underspecified — settle the intended end state (via the `ideation-first` skill) before the planner
+runs. A refactor with a clear target (extract method, rename, restructure a named module) skips it.
 
 **testing**
 ```
@@ -156,6 +163,8 @@ researcher
 ```
 researcher (optional) → planner → coder → tester → reviewer
 ```
+The ideation gate (see **feature (generic)** above) applies here too — an underspecified Spring
+feature needs a scope brief before the planner runs.
 
 ### Parallelism rule
 Run agents in **parallel** only when both are true:
@@ -191,8 +200,9 @@ For each agent:
 
 | Agent | Gate — must pass before proceeding |
 |---|---|
+| `ideation-first` (feature/greenfield refactor) | A **Scope brief** is present — either supplied in your invocation or produced by the main-thread skill — before the planner runs. If the request is underspecified and no brief exists, do not proceed; bounce back per the ideation gate. Well-specified requests pass this trivially. |
 | `planner` | Output contains numbered steps and at least one "Files to change" entry. |
-| `debugger` | Root cause is stated in one sentence, a failing test is shown, and the fix is verified with fresh test output (no success claim without an evidence run in this session). |
+| `debugger` | Root cause is stated in one sentence, the failure was reproduced (fresh output shown), and the hand-off names a fix location + failing-test spec. Read-only — it does not apply the fix. |
 | `coder` / `android-feature` | Build passes — agent must report `BUILD SUCCESSFUL`, AND the report shows fresh command output, not just a claim (verification-before-completion — no completion claim without evidence run in this session). |
 | `tester` / `android-tester` | Test suite passes with 0 new failures, with fresh output shown. |
 | `reviewer` / `compose-reviewer` | Zero CRITICAL or HIGH findings (or each finding has a documented exception reason). |
@@ -274,7 +284,7 @@ Read this before building any pipeline. Do not use agents marked "unavailable".
 | Agent | Role | Read-only? |
 |---|---|---|
 | `planner` | Decomposes tasks into ordered steps | Yes |
-| `debugger` | Root-cause debugging: reproduce, trace, failing test, minimal fix | No |
+| `debugger` | Root-cause diagnosis: reproduce, trace, hand off fix location + repro recipe | Yes (+ Bash to reproduce) |
 | `coder` | Minimal-diff implementation, runs build | No |
 | `reviewer` | CRITICAL/HIGH/MEDIUM/LOW code review | Yes |
 | `tester` | Writes missing tests, runs suite | No (test files only) |
