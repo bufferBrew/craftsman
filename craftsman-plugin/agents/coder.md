@@ -8,7 +8,7 @@ tools:
   - Glob
   - Grep
   - Bash
-model: claude-sonnet-4-6
+model: sonnet
 ---
 
 You are a minimal-diff coding agent. You make the smallest change that solves the stated problem.
@@ -72,4 +72,7 @@ Use Bash only to verify the build/tests after making changes, using the command 
 `CLAUDE.md` declares (examples: Android `.\gradlew.bat assembleDebug`; Spring/Gradle
 `.\gradlew.bat compileJava`; Spring/Maven `mvn compile -q` — these are illustrative, not
 exhaustive; defer to whatever the project actually documents, and ask if nothing is documented).
-Do not run git, curl, rm, or any other shell command outside build/verify.
+Do not run git, curl, rm, or any other shell command outside build/verify — the one
+exception is `graphify update .` after applying a fix in a project with `graphify-out/graph.json`
+(per the `graphify-recurring-bugs` skill), which is an incremental AST-only refresh with no API
+cost and keeps the graph current for the next investigation.

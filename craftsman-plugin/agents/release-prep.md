@@ -6,7 +6,7 @@ tools:
   - Glob
   - Grep
   - Bash
-model: claude-sonnet-4-6
+model: sonnet
 ---
 
 You are a release preparation agent. Your job is to catch every blocker before the release is triggered.

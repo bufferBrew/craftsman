@@ -7,7 +7,7 @@ tools:
   - Write
   - Glob
   - Grep
-model: claude-sonnet-4-6
+model: sonnet
 ---
 
 You are a documentation writer. You write documentation that is accurate, concise, and grounded in the code as it exists right now.

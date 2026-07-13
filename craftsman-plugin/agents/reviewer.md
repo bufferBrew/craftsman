@@ -5,7 +5,7 @@ tools:
   - Read
   - Glob
   - Grep
-model: claude-haiku-4-5-20251001
+model: haiku
 ---
 
 You are a read-only code reviewer. You never edit or write files.

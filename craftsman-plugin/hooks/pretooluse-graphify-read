@@ -27,12 +27,24 @@ should_hint() {
   printf '%s' "$input" | "$pybin" -c "
 import json, sys
 d = json.load(sys.stdin)
+tool = d.get('tool_name', '')
 t = d.get('tool_input', d)
+# Source-code extensions worth a graphify-first nudge. Documentation formats
+# (.md/.rst/.txt/.mdx) are deliberately excluded: the plugin's own agents are
+# required to read CLAUDE.md / KNOWN_ISSUES.md / README.md directly, so nudging
+# graphify on those would contradict the workflow.
 exts = ('.py', '.js', '.ts', '.tsx', '.jsx', '.astro', '.vue', '.svelte', '.go', '.rs',
         '.java', '.rb', '.c', '.h', '.cpp', '.hpp', '.cc', '.cs', '.kt', '.swift',
-        '.php', '.scala', '.lua', '.sh', '.md', '.rst', '.txt', '.mdx')
-vals = [str(t.get('file_path') or ''), str(t.get('pattern') or ''), str(t.get('path') or '')]
+        '.php', '.scala', '.lua', '.sh')
+vals = [str(t.get('file_path') or ''), str(t.get('pattern') or ''),
+        str(t.get('path') or ''), str(t.get('glob') or '')]
 joined = ' '.join(vals).lower().replace(chr(92), '/')
+if 'graphify-out/' in joined:
+    sys.exit(1)
+# Grep is the dedicated search tool — like a raw grep, orient via graphify first
+# regardless of the (regex) pattern.
+if tool == 'Grep':
+    sys.exit(0)
 tails = []
 for v in vals:
     if not v:
@@ -40,13 +52,13 @@ for v in vals:
     name = v.lower().replace(chr(92), '/').rsplit('/', 1)[-1]
     if '.' in name:
         tails.append('.' + name.rsplit('.', 1)[-1])
-hit = 'graphify-out/' not in joined and any(tl in exts for tl in tails)
+hit = any(tl in exts for tl in tails)
 sys.exit(0 if hit else 1)
 " 2>/dev/null
 }
 
 if should_hint && [ -f graphify-out/graph.json ]; then
-  printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","additionalContext":"MANDATORY: graphify-out/graph.json exists. You MUST run graphify before reading source files. Use: `graphify query \\"<question>\\"` (scoped subgraph), `graphify explain \\"<concept>\\"`, or `graphify path \\"<A>\\" \\"<B>\\"`. Only read raw files after graphify has oriented you, or to modify/debug specific lines. For a bug investigation, prefer the graphify-recurring-bugs skill. This rule applies to subagents too — include it in every subagent prompt involving code exploration."}}\n'
+  printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","additionalContext":"MANDATORY: graphify-out/graph.json exists. You MUST run graphify before reading or searching source files. Use: `graphify query \\"<question>\\"` (scoped subgraph), `graphify explain \\"<concept>\\"`, or `graphify path \\"<A>\\" \\"<B>\\"`. Only read or grep raw files after graphify has oriented you, or to modify/debug specific lines. For a bug investigation, prefer the graphify-recurring-bugs skill. This rule applies to subagents too — include it in every subagent prompt involving code exploration."}}\n'
 fi
 
 exit 0

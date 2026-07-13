@@ -16,7 +16,7 @@ extract_command() {
   # candidate must actually be invoked and checked, not just located.
   for pybin in python3 python; do
     if command -v "$pybin" >/dev/null 2>&1; then
-      out=$(printf '%s' "$input" | "$pybin" -c "import json,sys; d=json.load(sys.stdin); print(d.get('tool_input',d).get('command',''))" 2>/dev/null) && [ -n "${out+x}" ] && { printf '%s' "$out"; return; }
+      out=$(printf '%s' "$input" | "$pybin" -c "import json,sys; d=json.load(sys.stdin); print(d.get('tool_input',d).get('command',''))" 2>/dev/null) && [ -n "$out" ] && { printf '%s' "$out"; return; }
     fi
   done
   # No working python found: best-effort regex extraction.

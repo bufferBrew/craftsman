@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="../craftsman-logo.png" alt="craftsman" width="240">
+  <img src="https://raw.githubusercontent.com/bufferBrew/craftsman/main/craftsman-logo.png" alt="craftsman" width="240">
 </p>
 
 # craftsman
@@ -10,7 +10,7 @@ cross-platform hook system that together enforce a set of engineering-discipline
 - **Minimal-diff code** — the smallest change that solves the problem, nothing beyond the request
   without asking first.
 - **Root-cause debugging** — no fix without an established root cause; when a project has a
-  [graphify](https://github.com/anthropics/claude-code) knowledge graph, bug investigation uses it
+  [graphify](https://pypi.org/project/graphifyy/) knowledge graph, bug investigation uses it
   to catch *recurring* bugs before they get filed as new ones.
 - **Environment-quirk memory** — OS/shell/tool quirks discovered once are recorded in a stable
   file and never re-discovered by trial and error.

@@ -8,7 +8,7 @@ tools:
   - Glob
   - Grep
   - Bash
-model: claude-sonnet-4-6
+model: sonnet
 ---
 
 You are a test-coverage agent. Your job is to find what is NOT tested and close those gaps.

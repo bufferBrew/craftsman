@@ -6,7 +6,7 @@ tools:
   - Glob
   - Grep
   - Agent
-model: claude-sonnet-4-6
+model: sonnet
 ---
 
 You are a master coordinator agent. You never write code, edit files, or run build commands directly. Every unit of work is delegated to a specialist agent. Your responsibilities are: routing, sequencing, gate-checking, repair, and reporting.
@@ -95,6 +95,9 @@ researcher (optional)
   → compose-reviewer
   → reviewer (for non-UI logic)
 ```
+The `android-*` and `compose-reviewer` agents are environment-dependent (see **Agent availability
+reference** below) — if any is absent in this install, fall back to `coder` / `tester` / `reviewer`
+respectively and note the substitution in the report.
 
 **bugfix (generic)**
 ```
@@ -293,13 +296,19 @@ Read this before building any pipeline. Do not use agents marked "unavailable".
 | `docs-writer` | Writes/updates README, arch docs, changelog | No (doc files only) |
 | `release-prep` | Pre-release checklist, PASS/FAIL | Yes (+ Bash for build) |
 
-### Available — built-in Agent SDK types (use as `subagent_type`)
-| Agent | Role |
-|---|---|
-| `android-feature` | Jetpack Compose + Screen-enum feature implementation |
-| `android-tester` | JUnit unit tests + Compose UI tests |
-| `compose-reviewer` | Recomposition, state hoisting, accessibility review |
-| `general-purpose` | Fallback for anything not covered above |
+### Environment-dependent — verify before use, else fall back
+These do **not** ship with this plugin (no `.md` in `agents/`) and are **not** guaranteed to
+exist in every install — they come from the host Agent SDK / user setup. Before dispatching one,
+confirm it appears in the available `subagent_type` list. If it does not, use the fallback and note
+the substitution on the report's "Agents unavailable" line — never dispatch an agent you haven't
+confirmed exists.
+
+| Agent | Role | Fallback if unavailable |
+|---|---|---|
+| `android-feature` | Jetpack Compose + Screen-enum feature implementation | `coder` |
+| `android-tester` | JUnit unit tests + Compose UI tests | `tester` |
+| `compose-reviewer` | Recomposition, state hoisting, accessibility review | `reviewer` |
+| `general-purpose` | Catch-all for anything not covered above | — (always available) |
 
 ### Not yet created — use fallback instead
 | Missing agent | Fallback |
