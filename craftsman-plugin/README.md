@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="../craftsman-logo.png" alt="craftsman" width="240">
+</p>
+
 # craftsman
 
 A Claude Code plugin bundling a complete agent set, five skills, two slash commands, and a
@@ -164,7 +168,7 @@ Invoke any agent with `@<name> <task>` or let `@orchestrator` route for you.
 | `orchestrator` | Sonnet | No (delegates) | Any multi-step task; picks the smallest pipeline, enforces gates, max 2 repairs per gate, structured report |
 | `planner` | Haiku | No | Decomposing a feature/bug into ordered steps before coding |
 | `coder` | Sonnet | Yes | The implementation itself — minimal diff, runs the build, asks before adding anything extra |
-| `debugger` | Sonnet | Yes | Bug tasks — reproduces, traces to root cause (superpowers 4-phase method), writes a failing test, applies the minimal fix; graphify/quirks/KNOWN_ISSUES aware |
+| `debugger` | Sonnet | No (+ Bash to reproduce) | Bug diagnosis — reproduces, traces to root cause (superpowers 4-phase method), hands off a fix location + reproduction recipe + failing-test spec to `coder`; graphify/quirks/KNOWN_ISSUES aware |
 | `reviewer` | Haiku | No | CRITICAL/HIGH/MEDIUM/LOW review; also flags hand-rolled logic that duplicates stdlib/dependencies, and cross-checks `KNOWN_ISSUES.md` |
 | `tester` | Sonnet | Test files only | Coverage gaps, regression tests, runs the suite |
 | `security` | Sonnet | No | Secrets grep, git-history scan, OWASP, Android/Spring/CI-CD/agent checks; PASS/FAIL verdict |
@@ -176,8 +180,8 @@ Invoke any agent with `@<name> <task>` or let `@orchestrator` route for you.
 
 - `quick` → `coder` alone
 - `feature` → `researcher?` → `planner` → `coder` → `tester` → `reviewer` → `docs-writer?`
-- `bugfix` → `debugger` (root-cause 4-phase method + quirks/KNOWN_ISSUES/graphify, writes the
-  failing test and the fix) → `tester` → `reviewer`
+- `bugfix` → `debugger` (read-only root-cause 4-phase method + quirks/KNOWN_ISSUES/graphify; hands
+  off fix location + repro recipe) → `coder` → `tester` → `reviewer`
 - `refactor` → `planner` → `coder` → `reviewer` → `tester`
 - `release` → `security` → `release-prep` (security is never skipped before release)
 - plus `testing`, `documentation`, `security`, `dependency`, `cicd`, `research` single/short chains

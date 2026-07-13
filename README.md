@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./craftsman-logo.png" alt="craftsman" width="240">
+</p>
+
 # craftsman — Claude Code plugin marketplace
 
 This repository is a [Claude Code plugin marketplace](https://code.claude.com/docs/en/plugin-marketplaces)
