@@ -1,7 +1,7 @@
 {
   "name": "craftsman",
   "description": "Agent-discipline toolkit: a portable agent set plus skills enforcing minimal-diff coding, root-cause debugging, recurring-bug detection via graphify, environment-quirk memory, and an ask-before-writing project scaffolder",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "author": {
     "name": "bufferbrew",
     "email": "bufferbrew@gmail.com"

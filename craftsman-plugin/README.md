@@ -4,7 +4,7 @@
 
 # craftsman
 
-A Claude Code plugin bundling a complete agent set, six skills, two slash commands, and a
+A Claude Code plugin bundling a complete agent set, seven skills, two slash commands, and a
 cross-platform hook system that together enforce a set of engineering-discipline defaults:
 
 - **Minimal-diff code** — the smallest change that solves the problem, nothing beyond the request
@@ -25,7 +25,7 @@ cross-platform hook system that together enforce a set of engineering-discipline
 craftsman-plugin/
 ├── .claude-plugin/plugin.json    Plugin manifest
 ├── agents/                       Ten agents (see Agents reference)
-├── skills/                       Six skills (see Skills reference)
+├── skills/                       Seven skills (see Skills reference)
 ├── commands/
 │   ├── init.md                   /craftsman:init — project scaffolder
 │   └── quick.md                  /craftsman:quick — small-change fast path
@@ -77,7 +77,7 @@ Or from inside a session: `/plugin marketplace add bufferBrew/craftsman` then
 
 Restart Claude Code (or start a new session) after installing. Verify with `claude plugin list`
 and inspect the loaded components with `claude plugin details craftsman` — it should report
-10 agents, 8 skills (the 6 skills plus the 2 commands), and 2 hook events (SessionStart,
+10 agents, 9 skills (the 7 skills plus the 2 commands), and 2 hook events (SessionStart,
 PreToolUse), with an always-on cost of roughly 1.2k tokens per session.
 
 ### Option C — install from a local marketplace checkout
@@ -203,6 +203,7 @@ directly.
 | `environment-memory` | Before retrying anything that failed once; after discovering an OS/shell/tool quirk. Reads/appends `~/.claude/craftsman-memory/environment-quirks.md`. |
 | `caveats-and-status` | When reporting any nontrivial task complete. Fixed closing block: Verified / Assumed / Not covered. |
 | `graphify-recurring-bugs` | During bug investigation **only when** `graphify-out/graph.json` exists; complete no-op otherwise. See next section. |
+| `commit-craft` | Before any git commit, branch, or PR. Atomic commits; imperative ~50-char subject + why-focused body + `Co-Authored-By` trailer; branch naming; history hygiene (squash fixups, `--force-with-lease`); PR conventions (small, what/why/testing, `Closes #`, Claude Code trailer, green CI). Only commits/pushes/PRs when asked; branches first off `main`. |
 
 ## Graphify integration (recurring bugs)
 
@@ -211,10 +212,12 @@ If a project has a built graph (`graphify-out/graph.json`):
 1. **Investigation**: `graphify query "<symptom>"` runs before raw grep — cheaper in tokens and
    surfaces related callers/dependents a stack trace misses. Other call sites of an implicated
    shared function are treated as suspects too.
-2. **Dedup before filing**: before adding a new `KNOWN_ISSUES.md` entry,
-   `graphify path "<new bug symbol>" "<existing entry symbol>"` is run against open entries. A
+2. **Dedup before filing / recall a past fix**: before adding a new `KNOWN_ISSUES.md` entry,
+   `graphify path "<new bug symbol>" "<existing entry symbol>"` is run against existing entries. A
    short path means the "new" bug is likely the same root cause resurfacing elsewhere — that gets
-   surfaced for you to judge, never auto-merged.
+   surfaced for you to judge, never auto-merged. When the match lands on a **resolved** entry, its
+   recorded one-line fix is a known-good fix to reuse rather than re-derive — graphify is the
+   linker that recalls it; `KNOWN_ISSUES.md` is where the fix itself lives.
 3. **After the fix**: `graphify update .` (incremental, AST-only, no LLM cost) keeps the graph
    current.
 4. **Hooks**: any grep/find Bash call or Read/Glob of a source file in a graphed project gets an

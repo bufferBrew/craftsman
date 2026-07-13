@@ -1,6 +1,6 @@
 ---
 name: graphify-recurring-bugs
-description: Use during root-cause investigation of any bug in a project that has graphify-out/graph.json — surfaces related code before grepping and flags likely duplicates of existing KNOWN_ISSUES.md entries before filing a new one. No-op in any project without a built graph.
+description: Use during root-cause investigation of any bug in a project that has graphify-out/graph.json — surfaces related code before grepping, flags likely duplicates of existing KNOWN_ISSUES.md entries before filing a new one, and when a match lands on a resolved entry surfaces its recorded fix so a known-good fix can be reused. No-op in any project without a built graph.
 ---
 
 # Graphify-Aware Recurring Bugs
@@ -13,7 +13,9 @@ how the same root cause gets logged as three unrelated "new" bugs over time. `gr
 builds a queryable structural map of a codebase; this skill puts that map to work specifically
 during bug investigation, not just general code Q&A.
 
-**Core principle:** a recurring bug should be recognized as recurring, not re-discovered as new.
+**Core principle:** a recurring bug should be recognized as recurring — and its known-good fix
+reused — not re-discovered as new. graphify is the linker that recalls the past occurrence;
+`KNOWN_ISSUES.md` is where the fix that worked is actually recorded.
 
 ## Gate: does this apply?
 
@@ -37,17 +39,22 @@ falling back to raw grep:
    treat them as suspects too — a bug in a shared helper usually isn't confined to the one call
    site that happened to trigger it first.
 
-## Before filing a new KNOWN_ISSUES.md entry
+## Before filing a new KNOWN_ISSUES.md entry (and recall a past fix)
 
-Don't file blind. For each existing open entry in the project's `KNOWN_ISSUES.md`:
+Don't file blind. For each existing entry in the project's `KNOWN_ISSUES.md` — **open and
+resolved** — check for a structural link:
 
 1. `graphify path "<new bug's file/symbol>" "<existing entry's file/symbol>"` — a short path
    (direct call, shared callee, same module) is a signal the new bug may be the *same* root cause
    resurfacing at a different call site.
-2. If a short path is found, surface it explicitly: "this looks related to the open entry from
+2. If a short path is found, surface it explicitly: "this looks related to the entry from
    <date> — same root cause via `<path>`, not a new issue." Let the user or the fix decide whether
    to merge, not an automatic merge — this is a heuristic signal, not a certainty.
-3. Only file a genuinely new entry once existing ones are ruled out this way.
+3. When the match lands on a **resolved** entry, that entry's one-line "how it was fixed" is a
+   known-good fix for this recurrence — surface it and reuse it rather than re-deriving the fix
+   from scratch. (graphify recalls *which* past issue is relevant; the fix text itself lives in
+   `KNOWN_ISSUES.md`, not the graph.)
+4. Only file a genuinely new entry once existing ones are ruled out this way.
 
 ## After the fix
 

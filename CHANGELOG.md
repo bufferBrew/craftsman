@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers track `.claude-plugin/plugin.json` (kept in sync with the root
 `marketplace.json`).
 
+## [0.5.0] - 2026-07-14
+
+### Added
+- `commit-craft` skill: git/commit/branch/PR conventions — atomic commits, imperative subject +
+  why-focused body + `Co-Authored-By` trailer, branch naming, history hygiene (squash fixups,
+  `--force-with-lease`), and PR hygiene. Enforces "only commit/push/PR when asked; branch first
+  off `main`."
+
+### Changed
+- `orchestrator`, `coder`, `debugger`, and `security` agents now run on `opus` (previously
+  `sonnet`) for higher-capability reasoning; other agents unchanged.
+- `graphify-recurring-bugs` skill and the README graphify section now frame graphify as *recall*
+  of a past working fix: a `graphify path` match to a **resolved** `KNOWN_ISSUES.md` entry surfaces
+  that entry's recorded fix to reuse, not only recurring-bug dedup. graphify links; `KNOWN_ISSUES.md`
+  stores the fix.
+
+### Fixed
+- Reconciled stale skill counts across the plugin README, the root README, and the session-start
+  hook (now consistently seven skills). The session-start hook had also been silently omitting the
+  `ideation-first` skill; it now lists all seven.
+
 ## [0.4.0] - 2026-07-14
 
 ### Changed
