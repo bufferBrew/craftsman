@@ -28,7 +28,7 @@ Restart Claude Code (or start a new session) after installing.
 ## What's inside
 
 The plugin lives in [`craftsman-plugin/`](./craftsman-plugin) — see its
-[README](./craftsman-plugin/README.md) for the full reference (9 agents, 5 skills, 2 slash
+[README](./craftsman-plugin/README.md) for the full reference (10 agents, 5 skills, 2 slash
 commands, and a cross-platform hook system).
 
 ## License
