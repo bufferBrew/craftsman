@@ -1,0 +1,4 @@
+# Normalize line endings. Bash hook scripts must stay LF so they remain
+# executable on macOS/Linux checkouts; Windows batch stays CRLF.
+* text=auto eol=lf
+*.cmd text eol=crlf
