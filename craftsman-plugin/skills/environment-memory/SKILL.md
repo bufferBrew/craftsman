@@ -50,8 +50,10 @@ design).
 
 ## Notion / Obsidian
 
-- Obsidian: this file lives in a plain folder (`~/.claude/craftsman-memory/`) that can be opened
-  directly as an Obsidian vault — no export step needed, it's already markdown.
+- Obsidian: the whole `~/.claude/craftsman-memory/` folder is a valid Obsidian vault as-is (plain
+  markdown, no export step). Users can **Open folder as vault** on it to get search, backlinks, and
+  graph view over the quirks log while Claude Code keeps writing the same files. Nothing here needs
+  to change to support that — just keep the plain-markdown format intact.
 - Notion: only mirror an entry to Notion when the user explicitly asks, or when closing out an
   entry they flagged as important. Never mirror automatically — this file is checked frequently
   and a network round-trip on every check would defeat the point of keeping it cheap.

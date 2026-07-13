@@ -229,9 +229,12 @@ missing, on confirmation), but graph *builds* always remain user-triggered.
 - **`~/.claude/craftsman-memory/environment-quirks.md`** — flat, append-only, one line per quirk:
   `<symptom> → <fix> (discovered: <date>, context: <where>)`. Lives outside the plugin install
   directory so plugin updates never wipe it. Read in full when relevant; kept short by design.
-- **Obsidian**: open `~/.claude/craftsman-memory/` directly as a vault — it's plain
-  markdown, no export or sync step. (Unrelated to graphify's own `--obsidian` codebase-graph
-  export.)
+- **Obsidian**: the whole `~/.claude/craftsman-memory/` folder *is* an Obsidian vault as-is — plain
+  markdown, no export, sync, or config step. In Obsidian, **Open folder as vault** and point it at
+  `~/.claude/craftsman-memory/`. You then get full-text search, backlinks, and the graph view over
+  your accumulated quirks — plus a real editor instead of scrolling one flat file — while Claude Code
+  keeps writing the same files live underneath. (Unrelated to graphify's own `--obsidian`
+  codebase-graph export, which is a separate feature.)
 - **Notion**: mirroring is **opt-in only** — an entry goes to Notion only when you explicitly ask,
   or when closing out an entry you flagged as important. Nothing syncs automatically.
 
