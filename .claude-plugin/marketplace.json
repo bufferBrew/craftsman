@@ -1,0 +1,31 @@
+{
+  "name": "craftsman",
+  "owner": {
+    "name": "bufferbrew",
+    "email": "bufferbrew@gmail.com"
+  },
+  "description": "Agent-discipline toolkit for Claude Code — minimal-diff coding, root-cause debugging, recurring-bug detection, and honest completion.",
+  "plugins": [
+    {
+      "name": "craftsman",
+      "source": "./craftsman-plugin",
+      "description": "Agent-discipline toolkit: portable agent set plus skills enforcing minimal-diff coding, root-cause debugging, recurring-bug detection via graphify, environment-quirk memory, and an ask-before-writing project scaffolder",
+      "version": "0.1.0",
+      "license": "MIT",
+      "author": {
+        "name": "bufferbrew",
+        "email": "bufferbrew@gmail.com"
+      },
+      "homepage": "https://github.com/bufferBrew/craftsman",
+      "repository": "https://github.com/bufferBrew/craftsman",
+      "keywords": [
+        "agents",
+        "skills",
+        "debugging",
+        "code-review",
+        "project-scaffolding",
+        "graphify"
+      ]
+    }
+  ]
+}

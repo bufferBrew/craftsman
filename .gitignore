@@ -1,0 +1,9 @@
+# Not published — local test fixtures only
+craftsman-testbed/
+
+# Generated knowledge graph
+graphify-out/
+
+# OS cruft
+.DS_Store
+Thumbs.db
