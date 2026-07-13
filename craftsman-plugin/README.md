@@ -165,13 +165,13 @@ Invoke any agent with `@<name> <task>` or let `@orchestrator` route for you.
 
 | Agent | Model | Writes files? | Use for |
 |---|---|---|---|
-| `orchestrator` | Sonnet | No (delegates) | Any multi-step task; picks the smallest pipeline, enforces gates, max 2 repairs per gate, structured report |
+| `orchestrator` | Opus | No (delegates) | Any multi-step task; picks the smallest pipeline, enforces gates, max 2 repairs per gate, structured report |
 | `planner` | Haiku | No | Decomposing a feature/bug into ordered steps before coding |
-| `coder` | Sonnet | Yes | The implementation itself — minimal diff, runs the build, asks before adding anything extra |
-| `debugger` | Sonnet | No (+ Bash to reproduce) | Bug diagnosis — reproduces, traces to root cause (superpowers 4-phase method), hands off a fix location + reproduction recipe + failing-test spec to `coder`; graphify/quirks/KNOWN_ISSUES aware |
+| `coder` | Opus | Yes | The implementation itself — minimal diff, runs the build, asks before adding anything extra |
+| `debugger` | Opus | No (+ Bash to reproduce) | Bug diagnosis — reproduces, traces to root cause (superpowers 4-phase method), hands off a fix location + reproduction recipe + failing-test spec to `coder`; graphify/quirks/KNOWN_ISSUES aware |
 | `reviewer` | Haiku | No | CRITICAL/HIGH/MEDIUM/LOW review; also flags hand-rolled logic that duplicates stdlib/dependencies, and cross-checks `KNOWN_ISSUES.md` |
 | `tester` | Sonnet | Test files only | Coverage gaps, regression tests, runs the suite |
-| `security` | Sonnet | No | Secrets grep, git-history scan, OWASP, Android/Spring/CI-CD/agent checks; PASS/FAIL verdict |
+| `security` | Opus | No | Secrets grep, git-history scan, OWASP, Android/Spring/CI-CD/agent checks; PASS/FAIL verdict |
 | `release-prep` | Sonnet | No | Pre-release checklist; "Ready to ship: YES/NO" |
 | `researcher` | Haiku | No | Doc/API/version lookups — codebase first, then installed MCP servers, then the web |
 | `docs-writer` | Sonnet | Doc files only | README/changelog/architecture notes grounded in current code |

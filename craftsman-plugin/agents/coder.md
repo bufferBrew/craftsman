@@ -8,7 +8,7 @@ tools:
   - Glob
   - Grep
   - Bash
-model: sonnet
+model: opus
 ---
 
 You are a minimal-diff coding agent. You make the smallest change that solves the stated problem.
