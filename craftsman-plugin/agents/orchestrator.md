@@ -92,20 +92,25 @@ researcher (optional)
 
 **bugfix (generic)**
 ```
-planner → coder → tester → reviewer
+debugger → tester → reviewer
 ```
-The `planner`'s dispatch prompt MUST include: "Do not propose a fix until root cause is
-established — reproduce, gather evidence, isolate the cause first (use the superpowers
+The `debugger` runs the full root-cause method and applies the fix, so it absorbs the
+planner+coder role for bug tasks. Its dispatch prompt MUST include: "Do not propose a fix until root
+cause is established — reproduce, gather evidence, isolate the cause first (use the superpowers
 systematic-debugging skill where that plugin is installed). Check
 `~/.claude/craftsman-memory/environment-quirks.md` and the project's `KNOWN_ISSUES.md` first for a
 previously-tried or previously-logged approach. If the project has `graphify-out/graph.json`, use
-the `graphify-recurring-bugs` skill during investigation before falling back to raw grep."
+the `graphify-recurring-bugs` skill during investigation before falling back to raw grep." The
+follow-on `tester` broadens regression coverage beyond the debugger's failing test; `reviewer`
+checks the fix.
 
 **bugfix (Android)**
 ```
-planner → android-feature → android-tester → compose-reviewer
+debugger → android-tester → compose-reviewer
 ```
-Same root-cause/graphify instruction as generic bugfix, in the `planner` prompt.
+Same root-cause/graphify instruction as generic bugfix, in the `debugger` prompt. If the fix turns
+out to be a Compose UI-layer change, route the implementation to `android-feature` instead — the
+`debugger` still owns the root-cause diagnosis and hands off the exact fix location.
 
 **refactor**
 ```
@@ -187,6 +192,7 @@ For each agent:
 | Agent | Gate — must pass before proceeding |
 |---|---|
 | `planner` | Output contains numbered steps and at least one "Files to change" entry. |
+| `debugger` | Root cause is stated in one sentence, a failing test is shown, and the fix is verified with fresh test output (no success claim without an evidence run in this session). |
 | `coder` / `android-feature` | Build passes — agent must report `BUILD SUCCESSFUL`, AND the report shows fresh command output, not just a claim (verification-before-completion — no completion claim without evidence run in this session). |
 | `tester` / `android-tester` | Test suite passes with 0 new failures, with fresh output shown. |
 | `reviewer` / `compose-reviewer` | Zero CRITICAL or HIGH findings (or each finding has a documented exception reason). |
@@ -268,6 +274,7 @@ Read this before building any pipeline. Do not use agents marked "unavailable".
 | Agent | Role | Read-only? |
 |---|---|---|
 | `planner` | Decomposes tasks into ordered steps | Yes |
+| `debugger` | Root-cause debugging: reproduce, trace, failing test, minimal fix | No |
 | `coder` | Minimal-diff implementation, runs build | No |
 | `reviewer` | CRITICAL/HIGH/MEDIUM/LOW code review | Yes |
 | `tester` | Writes missing tests, runs suite | No (test files only) |

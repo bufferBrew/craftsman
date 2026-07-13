@@ -20,7 +20,7 @@ cross-platform hook system that together enforce a set of engineering-discipline
 ```
 craftsman-plugin/
 ├── .claude-plugin/plugin.json    Plugin manifest
-├── agents/                       Nine agents (see Agents reference)
+├── agents/                       Ten agents (see Agents reference)
 ├── skills/                       Five skills (see Skills reference)
 ├── commands/
 │   ├── init.md                   /craftsman:init — project scaffolder
@@ -73,7 +73,7 @@ Or from inside a session: `/plugin marketplace add bufferBrew/craftsman` then
 
 Restart Claude Code (or start a new session) after installing. Verify with `claude plugin list`
 and inspect the loaded components with `claude plugin details craftsman` — it should report
-9 agents, 7 skills (the 5 skills plus the 2 commands), and 2 hook events (SessionStart,
+10 agents, 7 skills (the 5 skills plus the 2 commands), and 2 hook events (SessionStart,
 PreToolUse), with an always-on cost of roughly 1.2k tokens per session.
 
 ### Option C — install from a local marketplace checkout
@@ -164,6 +164,7 @@ Invoke any agent with `@<name> <task>` or let `@orchestrator` route for you.
 | `orchestrator` | Sonnet | No (delegates) | Any multi-step task; picks the smallest pipeline, enforces gates, max 2 repairs per gate, structured report |
 | `planner` | Haiku | No | Decomposing a feature/bug into ordered steps before coding |
 | `coder` | Sonnet | Yes | The implementation itself — minimal diff, runs the build, asks before adding anything extra |
+| `debugger` | Sonnet | Yes | Bug tasks — reproduces, traces to root cause (superpowers 4-phase method), writes a failing test, applies the minimal fix; graphify/quirks/KNOWN_ISSUES aware |
 | `reviewer` | Haiku | No | CRITICAL/HIGH/MEDIUM/LOW review; also flags hand-rolled logic that duplicates stdlib/dependencies, and cross-checks `KNOWN_ISSUES.md` |
 | `tester` | Sonnet | Test files only | Coverage gaps, regression tests, runs the suite |
 | `security` | Sonnet | No | Secrets grep, git-history scan, OWASP, Android/Spring/CI-CD/agent checks; PASS/FAIL verdict |
@@ -175,8 +176,8 @@ Invoke any agent with `@<name> <task>` or let `@orchestrator` route for you.
 
 - `quick` → `coder` alone
 - `feature` → `researcher?` → `planner` → `coder` → `tester` → `reviewer` → `docs-writer?`
-- `bugfix` → `planner` (with mandatory root-cause + quirks/KNOWN_ISSUES/graphify
-  instructions) → `coder` → `tester` → `reviewer`
+- `bugfix` → `debugger` (root-cause 4-phase method + quirks/KNOWN_ISSUES/graphify, writes the
+  failing test and the fix) → `tester` → `reviewer`
 - `refactor` → `planner` → `coder` → `reviewer` → `tester`
 - `release` → `security` → `release-prep` (security is never skipped before release)
 - plus `testing`, `documentation`, `security`, `dependency`, `cicd`, `research` single/short chains
