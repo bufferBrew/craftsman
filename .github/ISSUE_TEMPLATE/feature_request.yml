@@ -1,0 +1,27 @@
+name: Feature request
+description: Propose a new agent, skill, hook, or behavior change
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: >
+        Describe the workflow friction first — craftsman follows smallest-change-first, so a
+        proposal grounded in a concrete problem lands better than a solution in search of one.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: What should happen, and where does it fit (agent / skill / command / hook)?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: >
+        Could an existing component cover this (e.g. an orchestrator pipeline tweak, a note in
+        an existing skill) instead of a new one?

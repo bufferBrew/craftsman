@@ -1,0 +1,57 @@
+name: Bug report
+description: Something in the plugin misbehaves — an agent, skill, command, or hook
+labels: [bug]
+body:
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - Agent (orchestrator, coder, debugger, ...)
+        - Skill (smallest-change-first, commit-craft, ...)
+        - Command (/craftsman:init, /craftsman:quick)
+        - Hooks (session-start, graphify hints, run-hook.cmd)
+        - Installation / marketplace
+        - Documentation
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What did you do, and what did the plugin do instead of what you expected?
+      placeholder: |
+        Ran `/craftsman:init` in a pnpm monorepo; it proposed `npm test` as the verify
+        command even though CI uses `pnpm turbo test`.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: OS and shell
+      placeholder: Windows 11 + Git Bash / macOS 15 + zsh / Ubuntu 24.04 + bash
+    validations:
+      required: true
+  - type: textarea
+    id: versions
+    attributes:
+      label: Versions
+      description: Output of `claude --version` and `claude plugin details craftsman`
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: validate-output
+    attributes:
+      label: Output of `claude plugin validate --strict <plugin path>` (if relevant)
+      description: >
+        Broken frontmatter silently drops a component's metadata — validate output rules
+        that out quickly. See the Troubleshooting section of the plugin README first.
+      render: text

@@ -1,0 +1,42 @@
+title: "[Use case] "
+labels: [use-case]
+body:
+  - type: markdown
+    attributes:
+      value: >
+        Real-world workflows help other users discover what's possible. A rough setup
+        that works beats a polished one that doesn't — share what you actually run.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem were you solving?
+      description: The pain before craftsman — what kept going wrong or taking too long?
+      placeholder: |
+        Every bugfix session ended with "done!" but no proof the build ran, and the same
+        null-handling bug got re-filed three times across services.
+    validations:
+      required: true
+  - type: textarea
+    id: workflow
+    attributes:
+      label: How do you use craftsman for it?
+      description: >
+        Which agents, skills, commands, or hooks are involved, and in what order?
+        Paste the actual prompts or commands you run.
+      placeholder: |
+        @orchestrator fix the crash in InvoiceService when the line-item list is empty
+        — debugger queries the graphify graph first, and the KNOWN_ISSUES.md check
+        caught that it matched a resolved entry from March.
+    validations:
+      required: true
+  - type: textarea
+    id: setup
+    attributes:
+      label: Project setup (optional)
+      description: Stack, project size, OS/shell — anything that makes your setup reproducible.
+      placeholder: Kotlin + Compose Android app, ~40k LOC, Windows 11 + Git Bash
+  - type: textarea
+    id: tweaks
+    attributes:
+      label: What did you change or wish worked differently? (optional)
+      description: Customizations you made, rough edges you hit, or gaps you worked around.

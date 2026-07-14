@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Share how you use craftsman
+    url: https://github.com/bufferBrew/craftsman/discussions
+    about: Real-world workflows and setups help other users discover what's possible.
