@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers track `.claude-plugin/plugin.json` (kept in sync with the root
 `marketplace.json`).
 
+## [0.5.1] - 2026-07-14
+
+### Added
+- Terminal-style demo image (`craftsman-demo.svg`) on the root README showing an orchestrator
+  bugfix run end to end.
+- `CONTRIBUTING.md`: local testing via `--plugin-dir`, validation requirements, component
+  conventions, `run-hook.cmd` polyglot editing rules, and versioning/changelog process.
+- `docs/use-cases.md`: four worked scenarios (minimal diffs, recurring-bug recall via graphify,
+  ask-first scaffolding, honest completion).
+- GitHub issue templates (bug report, feature request) and a Discussions contact link.
+
+### Changed
+- Restructured both READMEs to lead with the value proposition: a "Why craftsman" problem/solution
+  table, a 30-second start, and status badges (CI, version, license). Reference content unchanged;
+  the plugin README's Quick start section merged into the new 30-second start.
+
 ## [0.5.0] - 2026-07-14
 
 ### Added
