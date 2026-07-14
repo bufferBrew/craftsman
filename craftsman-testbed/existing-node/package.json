@@ -1,0 +1,13 @@
+{
+  "name": "existing-node-fixture",
+  "version": "1.0.0",
+  "description": "Fixture: proves craftsman:init picks a CI-declared test command (vitest run) over the generic npm-test default.",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^2.0.0"
+  }
+}

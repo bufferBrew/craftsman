@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "existing-python-fixture"
+version = "0.1.0"
+description = "Fixture: proves craftsman:init detects Poetry stack and prefers 'poetry run pytest' over the generic 'pytest' default."
+authors = ["fixture"]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

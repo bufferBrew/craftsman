@@ -1,0 +1,13 @@
+{
+  "name": "existing-node-with-graph-fixture",
+  "version": "1.0.0",
+  "description": "Fixture: proves graphify detection works alongside Node stack detection — both graph.json and a non-generic test command are present.",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^2.0.0"
+  }
+}

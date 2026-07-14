@@ -12,8 +12,8 @@
 </p>
 
 A Claude Code plugin that makes engineering discipline the default: the smallest correct change,
-no fix without a root cause, and an honest report of what was actually verified. Ten agents, seven
-skills, two slash commands, and a cross-platform hook system.
+no fix without a root cause, and an honest report of what was actually verified. Thirteen agents, seven
+skills, five slash commands, and a cross-platform hook system.
 
 ## Why craftsman
 
@@ -51,11 +51,14 @@ Worked examples in [docs/use-cases.md](../docs/use-cases.md); contributions welc
 ```
 craftsman-plugin/
 ├── .claude-plugin/plugin.json    Plugin manifest
-├── agents/                       Ten agents (see Agents reference)
+├── agents/                       Thirteen agents (see Agents reference)
 ├── skills/                       Seven skills (see Skills reference)
 ├── commands/
 │   ├── init.md                   /craftsman:init — project scaffolder
-│   └── quick.md                  /craftsman:quick — small-change fast path
+│   ├── quick.md                  /craftsman:quick — small-change fast path
+│   ├── doctor.md                 /craftsman:doctor — install health check
+│   ├── review.md                 /craftsman:review — direct reviewer routing
+│   └── security.md               /craftsman:security — direct security audit routing
 └── hooks/
     ├── hooks.json                Hook wiring (SessionStart + PreToolUse)
     ├── run-hook.cmd              Polyglot dispatcher (Windows CMD + Unix bash)
@@ -103,9 +106,8 @@ Or from inside a session: `/plugin marketplace add bufferBrew/craftsman` then
 `/plugin install craftsman@craftsman`.
 
 Restart Claude Code (or start a new session) after installing. Verify with `claude plugin list`
-and inspect the loaded components with `claude plugin details craftsman` — it should report
-10 agents, 9 skills (the 7 skills plus the 2 commands), and 2 hook events (SessionStart,
-PreToolUse), with an always-on cost of roughly 1.2k tokens per session.
+and inspect the loaded components with `claude plugin details craftsman` — it should report 13 agents. Claude Code counts commands as skills in the plugin details output: 7 skill files + 5 command files = 12 under the skills heading, and 2 hook events
+(SessionStart, PreToolUse), with an always-on cost of roughly 1.2k tokens per session.
 
 ### Option C — install from a local marketplace checkout
 
@@ -190,6 +192,9 @@ Invoke any agent with `@<name> <task>` or let `@orchestrator` route for you.
 | `release-prep` | Sonnet | No | Pre-release checklist; "Ready to ship: YES/NO" |
 | `researcher` | Haiku | No | Doc/API/version lookups — codebase first, then installed MCP servers, then the web |
 | `docs-writer` | Sonnet | Doc files only | README/changelog/architecture notes grounded in current code |
+| `dependency-auditor` | Sonnet | No | Manifest/lockfile audit: version drift, CVE lookup, unused packages, bloat; PASS/FAIL verdict |
+| `cicd-debugger` | Sonnet | No (+ Bash for git) | CI/CD root-cause diagnosis: workflow YAML issues, env mismatches, flaky steps; hands off fix to coder |
+| `refactor-agent` | Opus | Yes | Refactor-as-primary-task: identifies all callers first, verifies before and after each step, scope-disciplined |
 
 **Orchestrator pipelines** (chosen automatically by task type):
 
@@ -198,7 +203,7 @@ Invoke any agent with `@<name> <task>` or let `@orchestrator` route for you.
   scope brief first) → `researcher?` → `planner` → `coder` → `tester` → `reviewer` → `docs-writer?`
 - `bugfix` → `debugger` (read-only root-cause 4-phase method + quirks/KNOWN_ISSUES/graphify; hands
   off fix location + repro recipe) → `coder` → `tester` → `reviewer`
-- `refactor` → `planner` → `coder` → `reviewer` → `tester`
+- `refactor` → `planner` → `refactor-agent` → `reviewer` → `tester`
 - `release` → `security` → `release-prep` (security is never skipped before release)
 - plus `testing`, `documentation`, `security`, `dependency`, `cicd`, `research` single/short chains
 

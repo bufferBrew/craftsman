@@ -1,8 +1,6 @@
-# Not published — local test fixtures only
-craftsman-testbed/
-
-# Generated knowledge graph
+# Generated knowledge graph — exclude everywhere except the testbed fixture
 graphify-out/
+!craftsman-testbed/**/graphify-out/
 
 # OS cruft
 .DS_Store

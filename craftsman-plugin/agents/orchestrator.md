@@ -121,7 +121,7 @@ the diagnosis; `android-feature` applies the fix (it handles Compose UI-layer ch
 
 **refactor**
 ```
-planner → coder → reviewer → tester
+planner → refactor-agent → reviewer → tester
 ```
 The ideation gate above also applies to a *greenfield* refactor whose target shape is
 underspecified — settle the intended end state (via the `ideation-first` skill) before the planner
@@ -149,12 +149,12 @@ security → release-prep
 
 **dependency**
 ```
-researcher → coder → tester → security
+dependency-auditor → coder → tester → security
 ```
 
 **cicd**
 ```
-researcher → reviewer   (reviewer reads the workflow files)
+cicd-debugger → reviewer
 ```
 
 **research**
@@ -295,6 +295,9 @@ Read this before building any pipeline. Do not use agents marked "unavailable".
 | `researcher` | API/doc lookup, checks MCP-server coverage, cites sources | Yes |
 | `docs-writer` | Writes/updates README, arch docs, changelog | No (doc files only) |
 | `release-prep` | Pre-release checklist, PASS/FAIL | Yes (+ Bash for build) |
+| `dependency-auditor` | Full manifest/lockfile audit: version drift, CVE lookup, unused packages, bloat; PASS/FAIL verdict | Yes |
+| `cicd-debugger` | CI/CD root-cause diagnosis: workflow YAML, env mismatches, flaky steps; hands off fix to coder | Yes (+ Bash for git) |
+| `refactor-agent` | Refactor-as-primary-task: caller identification, pre/post build verification, scope discipline | No |
 
 ### Environment-dependent — verify before use, else fall back
 These do **not** ship with this plugin (no `.md` in `agents/`) and are **not** guaranteed to
@@ -316,9 +319,6 @@ confirmed exists.
 | `spring-api` | `coder` |
 | `spring-reviewer` | `reviewer` |
 | `spring-tester` | `tester` |
-| `cicd-debugger` | `researcher` (reads workflow files) + `reviewer` |
-| `dependency-auditor` | `researcher` + `security` |
-| `refactor-agent` | `planner` + `coder` + `reviewer` |
 
 Note missing agents in the report's "Agents unavailable" line so the user knows which specialist slots were filled by generalists.
 

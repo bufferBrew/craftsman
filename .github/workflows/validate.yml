@@ -19,6 +19,17 @@ jobs:
       - name: Install PyYAML
         run: pip install --quiet pyyaml
 
+      - name: Validate plugin structure (claude CLI, best-effort)
+        run: |
+          # The claude CLI may not be available on GitHub Actions runners.
+          # Attempt the real validation; fall back gracefully if the CLI is absent.
+          if command -v claude >/dev/null 2>&1; then
+            claude plugin validate --strict ./craftsman-plugin
+            echo "OK: claude plugin validate --strict passed."
+          else
+            echo "SKIP: claude CLI not found in this runner. Run 'claude plugin validate --strict ./craftsman-plugin' locally before merging."
+          fi
+
       - name: JSON manifests parse and versions match
         run: |
           python - <<'PY'
@@ -107,6 +118,66 @@ jobs:
           print("OK: all agent/skill/command frontmatter parses.")
           PY
 
+      - name: Agent/skill/command count matches hardcoded mentions
+        run: |
+          python - <<'PY'
+          import glob, re, sys
+
+          WORD_TO_NUM = {
+              'zero':0,'one':1,'two':2,'three':3,'four':4,'five':5,
+              'six':6,'seven':7,'eight':8,'nine':9,'ten':10,
+              'eleven':11,'twelve':12,'thirteen':13,'fourteen':14,'fifteen':15,
+          }
+          NUM_PAT = r'(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|\d+)'
+
+          agent_count   = len(glob.glob("craftsman-plugin/agents/*.md"))
+          skill_count   = len(glob.glob("craftsman-plugin/skills/*/SKILL.md"))
+          command_count = len(glob.glob("craftsman-plugin/commands/*.md"))
+          print(f"Actual: {agent_count} agents, {skill_count} skills, {command_count} commands")
+
+          def to_int(s):
+              s = s.lower()
+              return WORD_TO_NUM.get(s, int(s) if s.isdigit() else None)
+
+          def find_mismatches(label, text, noun_re, actual):
+              pat = rf'\b({NUM_PAT})\s+{noun_re}'
+              errs = []
+              for m in re.finditer(pat, text, re.IGNORECASE):
+                  n = to_int(m.group(1))
+                  if n is not None and n != actual:
+                      errs.append(f"  found '{m.group(0).strip()}' but actual count is {actual}")
+              return errs
+
+          files = {
+              'README.md':                          open('README.md',                          encoding='utf-8').read(),
+              'craftsman-plugin/README.md':         open('craftsman-plugin/README.md',         encoding='utf-8').read(),
+              'craftsman-plugin/hooks/session-start': open('craftsman-plugin/hooks/session-start', encoding='utf-8').read(),
+              '.claude-plugin/marketplace.json':    open('.claude-plugin/marketplace.json',    encoding='utf-8').read(),
+          }
+
+          all_errors = []
+          for path, text in files.items():
+              # agents — match "N agents" or "N agent"
+              for e in find_mismatches(path, text, r'agents?', agent_count):
+                  all_errors.append(f"{path}: {e}")
+              # skills — match "N skills" but skip lines also containing "commands"
+              # (those describe the combined Claude Code plugin-details output, not file count)
+              skill_lines = [ln for ln in text.splitlines() if not re.search(r'commands?', ln, re.IGNORECASE)]
+              skill_text  = '\n'.join(skill_lines)
+              for e in find_mismatches(path, skill_text, r'skills?', skill_count):
+                  all_errors.append(f"{path}: {e}")
+              # commands — only match "N slash commands"; bare "N commands" also matches
+              # unrelated phrasing like "installable in two commands" (shell commands to
+              # install the plugin, not a count of plugin slash commands)
+              for e in find_mismatches(path, text, r'slash\s+commands?', command_count):
+                  all_errors.append(f"{path}: {e}")
+
+          if all_errors:
+              print('\n'.join('FAIL: ' + e for e in all_errors))
+              sys.exit(1)
+          print("OK: all hardcoded counts agree with actual file counts.")
+          PY
+
       - name: Hook scripts pass a bash syntax check
         run: |
           set -e
@@ -119,3 +190,29 @@ jobs:
             bash -n "$script"
           done
           echo "OK: hook scripts are syntactically valid bash."
+
+      - name: Run testbed fixture checks
+        run: bash craftsman-testbed/run-checks.sh
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Hook scripts pass a bash syntax check (Windows Git Bash)
+        shell: bash
+        run: |
+          # Windows-specific: runs the same bash -n checks via Git Bash (the bash
+          # that run-hook.cmd would actually invoke on a Windows user's machine).
+          # NOTE: bash -n validates the bash half of run-hook.cmd (the Unix exec path);
+          # the CMD batch block is not validated here — test it manually via cmd.exe.
+          set -e
+          for script in \
+            craftsman-plugin/hooks/session-start \
+            craftsman-plugin/hooks/pretooluse-graphify-bash \
+            craftsman-plugin/hooks/pretooluse-graphify-read \
+            craftsman-plugin/hooks/run-hook.cmd; do
+            echo "bash -n $script"
+            bash -n "$script"
+          done
+          echo "OK: hook scripts are syntactically valid bash (Windows Git Bash)."

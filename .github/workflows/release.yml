@@ -1,0 +1,87 @@
+name: release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'craftsman-plugin/.claude-plugin/plugin.json'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g. 0.6.0) — overrides plugin.json if provided'
+        required: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine version
+        id: version
+        env:
+          VERSION_INPUT: ${{ github.event.inputs.version }}
+        run: |
+          if [ -n "$VERSION_INPUT" ]; then
+            VERSION="$VERSION_INPUT"
+          else
+            VERSION=$(python3 -c "import json; print(json.load(open('craftsman-plugin/.claude-plugin/plugin.json'))['version'])")
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Releasing version $VERSION"
+
+      - name: Check if tag already exists
+        id: tag_check
+        run: |
+          if git rev-parse "${{ steps.version.outputs.tag }}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Tag ${{ steps.version.outputs.tag }} already exists — skipping release creation."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Extract CHANGELOG section
+        if: steps.tag_check.outputs.exists == 'false'
+        run: |
+          python3 - <<'PY'
+          import os, re
+
+          version = os.environ['VERSION']
+          with open('CHANGELOG.md', encoding='utf-8') as f:
+              text = f.read()
+
+          # Match the section for this version: from "## [version]..." to the next "## [" or end of file
+          pattern = rf'## \[{re.escape(version)}\][^\n]*\n(.*?)(?=\n## \[|\Z)'
+          m = re.search(pattern, text, re.DOTALL)
+          notes = m.group(1).strip() if m else f'Release {version}'
+
+          with open('/tmp/release_notes.md', 'w', encoding='utf-8') as f:
+              f.write(notes)
+
+          print(f"Extracted {len(notes)} chars of release notes for v{version}")
+          PY
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+
+      - name: Create git tag
+        if: steps.tag_check.outputs.exists == 'false'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag "${{ steps.version.outputs.tag }}"
+          git push origin "${{ steps.version.outputs.tag }}"
+
+      - name: Create GitHub Release
+        if: steps.tag_check.outputs.exists == 'false'
+        run: |
+          gh release create "${{ steps.version.outputs.tag }}" \
+            --title "${{ steps.version.outputs.tag }}" \
+            --notes-file /tmp/release_notes.md
+        env:
+          GH_TOKEN: ${{ github.token }}
