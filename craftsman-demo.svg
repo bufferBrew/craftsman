@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="780" height="440" viewBox="0 0 780 440" role="img" aria-label="Terminal demo of the craftsman orchestrator running a bugfix pipeline">
+  <defs>
+    <clipPath id="window"><rect x="10" y="10" width="760" height="420" rx="10"/></clipPath>
+  </defs>
+  <!-- window -->
+  <rect x="10" y="10" width="760" height="420" rx="10" fill="#14161b" stroke="#2a2f3a" stroke-width="1"/>
+  <g clip-path="url(#window)">
+    <rect x="10" y="10" width="760" height="34" fill="#1f232b"/>
+  </g>
+  <circle cx="34" cy="27" r="6" fill="#ff5f57"/>
+  <circle cx="54" cy="27" r="6" fill="#febc2e"/>
+  <circle cx="74" cy="27" r="6" fill="#28c840"/>
+  <text x="390" y="31" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#7b8496">claude — craftsman</text>
+
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13">
+    <!-- prompt -->
+    <text x="34" y="72"><tspan fill="#7bd88f">❯ </tspan><tspan fill="#e6ebf4">@orchestrator fix the crash in QuizEngine when the word list is empty</tspan></text>
+
+    <!-- pipeline -->
+    <text x="34" y="104"><tspan fill="#c792ea">pipeline </tspan><tspan fill="#7b8496">bugfix → debugger → coder → tester → reviewer</tspan></text>
+
+    <!-- stages -->
+    <text x="34" y="136"><tspan fill="#82aaff">debugger </tspan><tspan fill="#d8dee9">root cause: QuizEngine.next() indexes words[0] on an empty list</tspan></text>
+    <text x="34" y="158"><tspan fill="#7b8496">          graphify: 2 other call sites share the assumption — flagged as suspects</tspan></text>
+    <text x="34" y="180"><tspan fill="#7b8496">          KNOWN_ISSUES.md: no duplicate entry — new root cause</tspan></text>
+
+    <text x="34" y="212"><tspan fill="#82aaff">coder    </tspan><tspan fill="#d8dee9"> minimal diff: </tspan><tspan fill="#7bd88f">+4</tspan><tspan fill="#d8dee9"> </tspan><tspan fill="#ff6e6e">−1</tspan><tspan fill="#d8dee9"> in QuizEngine.kt · build </tspan><tspan fill="#7bd88f">PASS</tspan><tspan fill="#7b8496"> (output attached)</tspan></text>
+
+    <text x="34" y="244"><tspan fill="#82aaff">tester   </tspan><tspan fill="#d8dee9"> regression test added: emptyWordList_showsEmptyState · suite </tspan><tspan fill="#7bd88f">PASS</tspan></text>
+
+    <text x="34" y="276"><tspan fill="#82aaff">reviewer </tspan><tspan fill="#d8dee9"> 0 critical · 0 high · 1 low </tspan><tspan fill="#7b8496">(naming nit, noted)</tspan></text>
+
+    <!-- caveats block -->
+    <text x="34" y="320" fill="#ffcb6b" font-weight="bold">Caveats &amp; status</text>
+    <text x="34" y="348"><tspan fill="#7bd88f">  Verified    </tspan><tspan fill="#d8dee9"> build + unit suite pass; original repro no longer crashes</tspan></text>
+    <text x="34" y="374"><tspan fill="#ffcb6b">  Assumed     </tspan><tspan fill="#d8dee9"> empty-state message copy is a placeholder pending design</tspan></text>
+    <text x="34" y="400"><tspan fill="#ff6e6e">  Not covered </tspan><tspan fill="#d8dee9"> instrumented UI tests (no emulator in this run)</tspan></text>
+  </g>
+</svg>
