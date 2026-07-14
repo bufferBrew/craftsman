@@ -60,3 +60,9 @@ project to get started.
 ## License
 
 [MIT](./LICENSE)
+
+---
+
+<p align="center">
+  If craftsman saves you a debugging session, a ⭐ helps others find it.
+</p>
