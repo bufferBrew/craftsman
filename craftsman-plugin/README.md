@@ -4,20 +4,47 @@
 
 # craftsman
 
-A Claude Code plugin bundling a complete agent set, seven skills, two slash commands, and a
-cross-platform hook system that together enforce a set of engineering-discipline defaults:
+<p align="center">
+  <a href="https://github.com/bufferBrew/craftsman/actions/workflows/validate.yml"><img src="https://github.com/bufferBrew/craftsman/actions/workflows/validate.yml/badge.svg" alt="validate"></a>
+  <a href="https://github.com/bufferBrew/craftsman/blob/main/craftsman-plugin/.claude-plugin/plugin.json"><img src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FbufferBrew%2Fcraftsman%2Fmain%2Fcraftsman-plugin%2F.claude-plugin%2Fplugin.json&query=%24.version&label=version&color=blue" alt="version"></a>
+  <a href="https://code.claude.com/docs/en/plugin-marketplaces"><img src="https://img.shields.io/badge/Claude%20Code-plugin-d97757" alt="Claude Code plugin"></a>
+  <a href="https://github.com/bufferBrew/craftsman/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="MIT license"></a>
+</p>
 
-- **Minimal-diff code** — the smallest change that solves the problem, nothing beyond the request
-  without asking first.
-- **Root-cause debugging** — no fix without an established root cause; when a project has a
-  [graphify](https://pypi.org/project/graphifyy/) knowledge graph, bug investigation uses it
-  to catch *recurring* bugs before they get filed as new ones.
-- **Environment-quirk memory** — OS/shell/tool quirks discovered once are recorded in a stable
-  file and never re-discovered by trial and error.
-- **Ask-before-writing scaffolding** — project setup proposes exact file content and waits for
-  confirmation, on every run.
-- **Honest completion** — every nontrivial task ends with a Caveats & status section stating what
-  was verified, what was assumed, and what wasn't covered.
+A Claude Code plugin that makes engineering discipline the default: the smallest correct change,
+no fix without a root cause, and an honest report of what was actually verified. Ten agents, seven
+skills, two slash commands, and a cross-platform hook system.
+
+## Why craftsman
+
+| Without | With craftsman |
+|---|---|
+| "Fixed it" — plus an uninvited refactor of three other files | **Minimal-diff coding** — the smallest change that solves the problem; anything beyond the request needs your OK first |
+| Symptom patched; the same bug returns next month under a new name | **Root-cause debugging** — no fix without an established root cause, and a [graphify](https://pypi.org/project/graphifyy/) knowledge graph catches *recurring* bugs before they're filed as new ones |
+| The same OS/shell quirk rediscovered by trial and error every session | **Environment-quirk memory** — discovered once, recorded in a stable file, never re-derived |
+| Scaffolding that writes files you didn't ask for | **Ask-before-writing setup** — `/craftsman:init` proposes exact file content and waits for confirmation, every run |
+| "Done!" (the build never actually ran) | **Honest completion** — every nontrivial task ends with a Caveats & status block: Verified / Assumed / Not covered |
+| Guessing which agent to chain next | **`@orchestrator`** — classifies the task, picks the minimal pipeline, and gates each stage on fresh evidence, not claims |
+
+## 30-second start
+
+```
+claude plugin marketplace add bufferBrew/craftsman
+claude plugin install craftsman@craftsman
+```
+
+Restart Claude Code (or start a new session), then in any project:
+
+1. **`/craftsman:init`** — detects your stack, proposes a project `CLAUDE.md` (with the real
+   build/verify command) and a `KNOWN_ISSUES.md` template, and asks before writing anything.
+2. **`@orchestrator <task>`** for multi-step work; **`/craftsman:quick <change>`** for one-line
+   fixes.
+3. When a bug comes in and the project has a graphify graph, the investigation automatically runs
+   through the graph first and checks whether the bug duplicates a `KNOWN_ISSUES.md` entry.
+
+More install options (session-only trial, local checkout) under [Installation](#installation).
+Worked examples in [docs/use-cases.md](../docs/use-cases.md); contributions welcome — see
+[CONTRIBUTING.md](../CONTRIBUTING.md).
 
 ## Contents
 
@@ -103,18 +130,6 @@ This checks the manifest and the YAML frontmatter of every agent, skill, and com
 before committing — broken frontmatter does not error at runtime, it **silently drops all
 metadata** (tools, model, description), which disables the component in ways that are hard to
 notice.
-
-## Quick start
-
-With the plugin loaded, in any project:
-
-1. **`/craftsman:init`** — detects the tech stack, proposes a project `CLAUDE.md` (with the real
-   build/verify command) and a `KNOWN_ISSUES.md` template, and asks before writing anything. It
-   also detects graphify and offers to install it (on confirmation) if it's missing.
-2. Work normally. For multi-step tasks, invoke **`@orchestrator <task>`**; for one-line fixes,
-   **`/craftsman:quick <change>`**.
-3. When a bug comes in and the project has a graphify graph, the investigation automatically runs
-   through the graph first and checks whether the bug duplicates an open `KNOWN_ISSUES.md` entry.
 
 ## Commands reference
 
