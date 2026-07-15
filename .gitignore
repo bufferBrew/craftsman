@@ -5,3 +5,6 @@ graphify-out/
 # OS cruft
 .DS_Store
 Thumbs.db
+
+# IDE
+.idea/
