@@ -16,8 +16,8 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: Install PyYAML
-        run: pip install --quiet pyyaml
+      - name: Install PyYAML and codespell
+        run: pip install --quiet pyyaml codespell
 
       - name: Validate plugin structure (claude CLI, best-effort)
         run: |
@@ -194,6 +194,67 @@ jobs:
       - name: Run testbed fixture checks
         run: bash craftsman-testbed/run-checks.sh
 
+      - name: Spellcheck prose (codespell)
+        run: |
+          codespell \
+            --ignore-words-list "iff,missable" \
+            --skip ".git,*.json,*.yml,*.yaml,*.lock,craftsman-testbed,docs/_config.yml,_site" \
+            README.md craftsman-plugin/README.md CONTRIBUTING.md \
+            craftsman-plugin/agents craftsman-plugin/skills craftsman-plugin/commands \
+            craftsman-plugin/hooks docs
+
+      - name: Hook output — behavioral test (items 1 and 5)
+        run: |
+          set -euo pipefail
+          HOOKS="$GITHUB_WORKSPACE/craftsman-plugin/hooks"
+
+          # --- Sub-test A: pretooluse-graphify-bash WITHOUT graph → exit 0, empty output
+          tmpA=$(mktemp -d)
+          outA=$(cd "$tmpA" && printf '{"tool_name":"Bash","tool_input":{"command":"grep -r foo src/"}}' \
+            | bash "$HOOKS/pretooluse-graphify-bash")
+          if [ -n "$outA" ]; then
+            echo "FAIL: pretooluse-graphify-bash emitted output without graph.json: $outA"; exit 1
+          fi
+          echo "OK: pretooluse-graphify-bash: no-op without graph.json"
+
+          # --- Sub-test B: pretooluse-graphify-bash WITH graph → valid JSON with expected key
+          tmpB=$(mktemp -d)
+          mkdir -p "$tmpB/graphify-out"
+          echo '{}' > "$tmpB/graphify-out/graph.json"
+          outB=$(cd "$tmpB" && printf '{"tool_name":"Bash","tool_input":{"command":"grep -r foo src/"}}' \
+            | bash "$HOOKS/pretooluse-graphify-bash")
+          printf '%s' "$outB" > "$tmpB/out.json"
+          python3 - "$tmpB/out.json" <<'PY'
+          import json, sys
+          with open(sys.argv[1]) as f:
+              d = json.load(f)
+          assert "hookSpecificOutput" in d, "missing top-level key: hookSpecificOutput"
+          assert "additionalContext" in d["hookSpecificOutput"], "missing hookSpecificOutput.additionalContext"
+          print("OK: pretooluse-graphify-bash output has expected JSON shape")
+          PY
+
+          # --- Sub-test B2: pretooluse-graphify-bash WITH graph + non-grep command → empty
+          outB2=$(cd "$tmpB" && printf '{"tool_name":"Bash","tool_input":{"command":"ls -la"}}' \
+            | bash "$HOOKS/pretooluse-graphify-bash")
+          if [ -n "$outB2" ]; then
+            echo "FAIL: pretooluse-graphify-bash fired on non-grep command: $outB2"; exit 1
+          fi
+          echo "OK: pretooluse-graphify-bash: no-op for non-grep command (graph.json present)"
+
+          # --- Sub-test C: pretooluse-graphify-read WITH graph + .js file → valid JSON with expected key
+          outC=$(cd "$tmpB" && printf '{"tool_name":"Read","tool_input":{"file_path":"src/payment.js"}}' \
+            | bash "$HOOKS/pretooluse-graphify-read")
+          printf '%s' "$outC" > "$tmpB/outC.json"
+          python3 - "$tmpB/outC.json" <<'PY'
+          import json, sys
+          with open(sys.argv[1]) as f:
+              d = json.load(f)
+          assert "hookSpecificOutput" in d, "missing top-level key: hookSpecificOutput"
+          assert "additionalContext" in d["hookSpecificOutput"], "missing hookSpecificOutput.additionalContext"
+          print("OK: pretooluse-graphify-read output has expected JSON shape")
+          PY
+          echo "All hook behavioral tests passed."
+
   windows:
     runs-on: windows-latest
     steps:
@@ -216,3 +277,33 @@ jobs:
             bash -n "$script"
           done
           echo "OK: hook scripts are syntactically valid bash (Windows Git Bash)."
+
+      - name: Invoke run-hook.cmd via CMD (behavior test)
+        shell: cmd
+        run: |
+          set "HOOKS=%CD%\craftsman-plugin\hooks"
+          set "TESTDIR=%TEMP%\craftsman-hook-test"
+          if exist "%TESTDIR%" rmdir /s /q "%TESTDIR%"
+          mkdir "%TESTDIR%\graphify-out"
+          echo {} > "%TESTDIR%\graphify-out\graph.json"
+          cd /d "%TESTDIR%"
+          echo {"tool_name":"Bash","tool_input":{"command":"grep foo bar.js"}} | "%HOOKS%\run-hook.cmd" pretooluse-graphify-bash > "%TEMP%\hook-cmd-out.txt"
+          if %ERRORLEVEL% neq 0 (
+            echo FAIL: run-hook.cmd returned non-zero exit code
+            exit /b 1
+          )
+          echo OK: run-hook.cmd dispatched and hook exited 0
+
+      - name: Validate run-hook.cmd output JSON shape (PowerShell)
+        shell: powershell
+        run: |
+          $out = Get-Content "$env:TEMP\hook-cmd-out.txt" -Raw
+          try { $json = $out | ConvertFrom-Json }
+          catch { Write-Error "FAIL: not valid JSON: $out"; exit 1 }
+          if (-not $json.hookSpecificOutput) {
+            Write-Error "FAIL: missing hookSpecificOutput. Raw output: $out"; exit 1
+          }
+          if (-not $json.hookSpecificOutput.additionalContext) {
+            Write-Error "FAIL: missing hookSpecificOutput.additionalContext. Raw output: $out"; exit 1
+          }
+          Write-Host "OK: run-hook.cmd output has expected JSON shape"

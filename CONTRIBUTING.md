@@ -71,6 +71,12 @@ Bash, use `cmd.exe //c '...'` (double slash — a single `/c` gets mangled by MS
 - Add a [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) entry to `CHANGELOG.md` under the
   new version.
 
+The `KNOWN_ISSUES.md` and `environment-quirks.md` file formats are considered stable as of v0.5.x.
+If a future version changes either format in a breaking way, that change will be called out
+explicitly in `CHANGELOG.md`. No migration tooling exists yet because no breaking change has
+occurred — existing files in the current format continue to work with the current skills and agents
+without modification.
+
 ## Commits and PRs
 
 The repo follows its own `commit-craft` skill: atomic commits, imperative ~50-character subject,

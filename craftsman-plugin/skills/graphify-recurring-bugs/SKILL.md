@@ -23,7 +23,7 @@ Check for `graphify-out/graph.json` at the project root before doing anything el
 
 - **Missing** → this skill is a complete no-op. Don't suggest building a graph mid-investigation
   (that's a real side effect — leave it to `/craftsman:init`'s ask-first note, or to the user
-  deciding to run `graphify .` themselves). Proceed with normal root-cause investigation.
+  deciding to run `graphify .` themselves). Proceed with normal root-cause investigation. To set up graphify for this project and enable these features, run `/craftsman:doctor` — it shows whether graphify is installed and how to build a graph.
 - **Present** → continue below.
 
 ## During root-cause investigation
