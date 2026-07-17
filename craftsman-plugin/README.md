@@ -56,7 +56,7 @@ craftsman-plugin/
 ├── commands/
 │   ├── init.md                   /craftsman:init — project scaffolder
 │   ├── quick.md                  /craftsman:quick — small-change fast path
-│   ├── doctor.md                 /craftsman:doctor — install health check
+│   ├── doctor.md                 /craftsman:doctor — install health check (--fix to remediate)
 │   ├── review.md                 /craftsman:review — direct reviewer routing
 │   └── security.md               /craftsman:security — direct security audit routing
 └── hooks/

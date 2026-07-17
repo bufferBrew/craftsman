@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers track `.claude-plugin/plugin.json` (kept in sync with the root
 `marketplace.json`).
 
+## [0.7.0] - 2026-07-17
+
+### Added
+- `/craftsman:doctor --fix`: opt-in remediation for the three detected silent-failure conditions.
+  Default (no-arg) behavior is unchanged — diagnostic only. With `--fix`, each repair is shown and
+  confirmed (y/n) before it runs, then the check is re-run to verify: Git Bash via
+  `winget install Git.Git` (lands on the standard path the hook dispatcher already probes, so no
+  PATH edit), graphify graph via `graphify .`, and the Windows python3 Store-stub via
+  `winget install Python.Python.3.12` (flagged as a partial fix — the Store app-execution alias may
+  still need disabling). Falls back to manual install links where `winget` is unavailable.
+
 ## [0.6.0] - 2026-07-15
 
 ### Added

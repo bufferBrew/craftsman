@@ -10,7 +10,7 @@
       "name": "craftsman",
       "source": "./craftsman-plugin",
       "description": "Agent-discipline toolkit: portable agent set plus skills enforcing minimal-diff coding, root-cause debugging, recurring-bug detection via graphify, environment-quirk memory, and an ask-before-writing project scaffolder",
-      "version": "0.6.0",
+      "version": "0.7.0",
       "license": "MIT",
       "author": {
         "name": "bufferbrew",
