@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers track `.claude-plugin/plugin.json` (kept in sync with the root
 `marketplace.json`).
 
+## [0.6.0] - 2026-07-15
+
+### Added
+- `ui-craft` skill: framework-adaptive modern-UI discipline — design-token priority
+  (`design-system/MASTER.md` from design-intelligence skills like ui-ux-pro-max → framework theme
+  → existing conventions), accessibility (contrast, touch targets, semantics, focus order),
+  responsive layout, state-driven UI with explicit loading/empty/error states, motion restraint.
+- `ui-designer` agent: UI implementation specialist that detects the project's UI framework
+  (Compose, Flutter, React/Next.js, SwiftUI, Vue, web), applies the `ui-craft` skill, and carries
+  coder's minimal-diff contract. The orchestrator routes UI-flavored feature/bugfix/quick tasks
+  (screens, components, styling, layout, theming) to it in the `coder` slot.
+
+### Removed
+- Android/Spring project-type tiering from the orchestrator: the Android feature/bugfix pipeline
+  branches, the environment-dependent `android-feature`/`android-tester`/`compose-reviewer`
+  table, and the never-created `spring-api`/`spring-reviewer`/`spring-tester` planned-agents
+  table (also removed from ROADMAP.md). One stack-adaptive pipeline remains — agents defer to
+  the build/verify command the project's own `CLAUDE.md` declares.
+
+### Changed
+- Security agent's Android and Spring Boot sections reframed as platform-conditional checks that
+  run only when the project matches, reporting N/A otherwise.
+- Tester's Bash-scope examples broadened beyond Gradle/Maven (npm, pytest, cargo, flutter),
+  deferring to the project's declared test command.
+
 ## [0.5.1] - 2026-07-14
 
 ### Added

@@ -12,7 +12,7 @@
 </p>
 
 A Claude Code plugin that makes engineering discipline the default: the smallest correct change,
-no fix without a root cause, and an honest report of what was actually verified. Thirteen agents, seven
+no fix without a root cause, and an honest report of what was actually verified. Fourteen agents, eight
 skills, five slash commands, and a cross-platform hook system.
 
 ## Why craftsman
@@ -51,8 +51,8 @@ Worked examples in [docs/use-cases.md](../docs/use-cases.md); contributions welc
 ```
 craftsman-plugin/
 ├── .claude-plugin/plugin.json    Plugin manifest
-├── agents/                       Thirteen agents (see Agents reference)
-├── skills/                       Seven skills (see Skills reference)
+├── agents/                       Fourteen agents (see Agents reference)
+├── skills/                       Eight skills (see Skills reference)
 ├── commands/
 │   ├── init.md                   /craftsman:init — project scaffolder
 │   ├── quick.md                  /craftsman:quick — small-change fast path
@@ -106,7 +106,7 @@ Or from inside a session: `/plugin marketplace add bufferBrew/craftsman` then
 `/plugin install craftsman@craftsman`.
 
 Restart Claude Code (or start a new session) after installing. Verify with `claude plugin list`
-and inspect the loaded components with `claude plugin details craftsman` — it should report 13 agents. Claude Code counts commands as skills in the plugin details output: 7 skill files + 5 command files = 12 under the skills heading, and 2 hook events
+and inspect the loaded components with `claude plugin details craftsman` — it should report 14 agents. Claude Code counts commands as skills in the plugin details output: 8 skill files + 5 command files = 13 under the skills heading, and 2 hook events
 (SessionStart, PreToolUse), with an always-on cost of roughly 1.2k tokens per session.
 
 ### Option C — install from a local marketplace checkout
@@ -185,10 +185,11 @@ Invoke any agent with `@<name> <task>` or let `@orchestrator` route for you.
 | `orchestrator` | Opus | No (delegates) | Any multi-step task; picks the smallest pipeline, enforces gates, max 2 repairs per gate, structured report |
 | `planner` | Haiku | No | Decomposing a feature/bug into ordered steps before coding |
 | `coder` | Opus | Yes | The implementation itself — minimal diff, runs the build, asks before adding anything extra |
+| `ui-designer` | Opus | Yes | UI-flavored implementation — detects the UI framework (Compose, Flutter, React, SwiftUI, web), applies design-system tokens, a11y, responsive layout per the `ui-craft` skill; minimal diff, runs the build |
 | `debugger` | Opus | No (+ Bash to reproduce) | Bug diagnosis — reproduces, traces to root cause (superpowers 4-phase method), hands off a fix location + reproduction recipe + failing-test spec to `coder`; graphify/quirks/KNOWN_ISSUES aware |
 | `reviewer` | Haiku | No | CRITICAL/HIGH/MEDIUM/LOW review; also flags hand-rolled logic that duplicates stdlib/dependencies, and cross-checks `KNOWN_ISSUES.md` |
 | `tester` | Sonnet | Test files only | Coverage gaps, regression tests, runs the suite |
-| `security` | Opus | No | Secrets grep, git-history scan, OWASP, Android/Spring/CI-CD/agent checks; PASS/FAIL verdict |
+| `security` | Opus | No | Secrets grep, git-history scan, OWASP, platform-conditional (Android/Spring), CI-CD and agent checks; PASS/FAIL verdict |
 | `release-prep` | Sonnet | No | Pre-release checklist; "Ready to ship: YES/NO" |
 | `researcher` | Haiku | No | Doc/API/version lookups — codebase first, then installed MCP servers, then the web |
 | `docs-writer` | Sonnet | Doc files only | README/changelog/architecture notes grounded in current code |
@@ -203,6 +204,8 @@ Invoke any agent with `@<name> <task>` or let `@orchestrator` route for you.
   scope brief first) → `researcher?` → `planner` → `coder` → `tester` → `reviewer` → `docs-writer?`
 - `bugfix` → `debugger` (read-only root-cause 4-phase method + quirks/KNOWN_ISSUES/graphify; hands
   off fix location + repro recipe) → `coder` → `tester` → `reviewer`
+- UI-flavored `feature`/`bugfix`/`quick` (screens, components, styling, layout) → same pipeline
+  with `ui-designer` in the `coder` slot
 - `refactor` → `planner` → `refactor-agent` → `reviewer` → `tester`
 - `release` → `security` → `release-prep` (security is never skipped before release)
 - plus `testing`, `documentation`, `security`, `dependency`, `cicd`, `research` single/short chains
@@ -222,6 +225,7 @@ directly.
 | `logging-tradeoffs` | When taking a deliberate shortcut, investigating a possibly-logged bug, or resolving an entry. Defines the `KNOWN_ISSUES.md` format: what changed / ceiling / upgrade trigger / status. |
 | `environment-memory` | Before retrying anything that failed once; after discovering an OS/shell/tool quirk. Reads/appends `~/.claude/craftsman-memory/environment-quirks.md`. |
 | `caveats-and-status` | When reporting any nontrivial task complete. Fixed closing block: Verified / Assumed / Not covered. |
+| `ui-craft` | Before writing or changing any UI, in any framework. Design-token discipline (design-system/MASTER.md → theme layer → conventions), accessibility (contrast, touch targets, semantics), responsive layout, state-driven UI, motion restraint. Referenced by `ui-designer`. |
 | `graphify-recurring-bugs` | During bug investigation **only when** `graphify-out/graph.json` exists; complete no-op otherwise. See next section. |
 | `commit-craft` | Before any git commit, branch, or PR. Atomic commits; imperative ~50-char subject + why-focused body + `Co-Authored-By` trailer; branch naming; history hygiene (squash fixups, `--force-with-lease`); PR conventions (small, what/why/testing, `Closes #`, Claude Code trailer, green CI). Only commits/pushes/PRs when asked; branches first off `main`. |
 

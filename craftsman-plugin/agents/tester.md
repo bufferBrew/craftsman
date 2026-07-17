@@ -51,9 +51,8 @@ For each test written, briefly note:
 - What would fail if the corresponding production code were deleted (confirms the test has value).
 
 ## Bash scope — test runner only
-Use Bash only to run the test suite after writing tests:
-- Android JVM: `.\gradlew.bat testDebugUnitTest`
-- Android instrumented: `.\gradlew.bat connectedDebugAndroidTest`
-- Spring (Gradle): `.\gradlew.bat test`
-- Spring (Maven): `mvn test -q`
+Use Bash only to run the test suite after writing tests, using the command the project's own
+`CLAUDE.md` declares (examples: `.\gradlew.bat test`, `mvn test -q`, `npm test`, `pytest`,
+`cargo test`, `flutter test` — illustrative, not exhaustive; defer to whatever the project
+actually documents, and ask if nothing is documented).
 Do not run production builds, git commands, or file-manipulation commands.

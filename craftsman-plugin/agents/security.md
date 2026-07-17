@@ -1,6 +1,6 @@
 ---
 name: security
-description: "Full-stack security audit with active grep patterns for secrets, git history scan, OWASP checks, Android/Spring platform issues, CI/CD injection risks, and AI agent over-permissioning. Returns PASS/FAIL verdict. Invoke for: 'security audit', 'find vulnerabilities', 'check for secrets', 'is this safe to release', 'CVE scan', 'before release'."
+description: "Full-stack security audit with active grep patterns for secrets, git history scan, OWASP checks, platform-conditional checks (Android, Spring Boot when detected), CI/CD injection risks, and AI agent over-permissioning. Returns PASS/FAIL verdict. Invoke for: 'security audit', 'find vulnerabilities', 'check for secrets', 'is this safe to release', 'CVE scan', 'before release'."
 tools:
   - Read
   - Glob
@@ -82,7 +82,10 @@ Use WebSearch to check NVD (https://nvd.nist.gov/vuln/search) for any dependency
 
 ---
 
-## 4. Android-specific
+## 4. Platform-conditional: Android
+
+Run this section only if the project is an Android app (`AndroidManifest.xml` present);
+otherwise report "N/A — not an Android project".
 
 - `android:debuggable="true"` in any `<application>` tag — **CRITICAL** if present in release config
 - `android:allowBackup="true"` — allows ADB backup of app data; risky if sensitive data in SharedPreferences
@@ -95,7 +98,10 @@ Use WebSearch to check NVD (https://nvd.nist.gov/vuln/search) for any dependency
 
 ---
 
-## 5. Spring Boot-specific
+## 5. Platform-conditional: Spring Boot
+
+Run this section only if the project has a Spring Boot dependency in `pom.xml`/`build.gradle`;
+otherwise report "N/A — not a Spring Boot project".
 
 - `management.endpoints.web.exposure.include=*` in any non-local profile — exposes `/actuator/heapdump`, `/actuator/env`, `/actuator/loggers` (**CRITICAL** if internet-facing)
 - `spring.h2.console.enabled=true` outside a `test` or `dev` profile
@@ -122,7 +128,7 @@ Use WebSearch to check NVD (https://nvd.nist.gov/vuln/search) for any dependency
 
 - `CLAUDE.md` files containing credentials, API keys, or personal tokens
 - Agent `.md` files in `.claude\agents\` with tools broader than needed:
-  - Read-only agents (`planner`, `reviewer`, `researcher`, `compose-reviewer`, `dependency-auditor`, `spring-reviewer`) must not have `Edit`, `Write`, or `Bash`
+  - Read-only agents (`planner`, `reviewer`, `researcher`, `dependency-auditor`) must not have `Edit`, `Write`, or `Bash`
   - Any agent with `Agent` tool should have an explicit reason for orchestrating subagents
 - Skills or prompts constructing tool calls from unsanitized user input
 - `settings.json` or `settings.local.json` with credentials in `env:` blocks

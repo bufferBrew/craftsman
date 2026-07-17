@@ -10,7 +10,7 @@
 
 <!-- What you ran and what you saw. Paste the relevant output — a claim without
      evidence is not a verification. Example:
-     `claude plugin validate --strict ./craftsman-plugin` → "All components valid (12 agents, 8 skills, 2 commands, 2 hooks)"
+     `claude plugin validate --strict ./craftsman-plugin` → "Validation passed" (14 agents, 8 skills, 5 commands, 2 hook events)
      CI green on the linked commit. -->
 
 **Checklist**

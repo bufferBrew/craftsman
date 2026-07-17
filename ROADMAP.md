@@ -5,31 +5,6 @@ Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
 
-## Planned agents
-
-The orchestrator's [agent availability reference](craftsman-plugin/agents/orchestrator.md) is the
-canonical list of what exists, what is environment-dependent, and what is not yet created. Three
-agents are documented in the "Not yet created" table:
-
-| Agent | What it would do | Fallback today |
-|---|---|---|
-| `spring-api` | Spring-specific implementation: REST endpoints, Spring Boot annotations, bean wiring, and the Spring project's own build/verify command | `coder` |
-| `spring-reviewer` | Spring-specific code review: Spring idioms, bean lifecycle, annotation misuse, and MVC/data layer conventions | `reviewer` |
-| `spring-tester` | Spring-specific test writing: JUnit unit tests, `@SpringBootTest` integration tests, MockMvc slice tests | `tester` |
-
-These three are sequenced together because the orchestrator already defines a Spring feature
-pipeline (`researcher → planner → coder → tester → reviewer`). Right now that pipeline runs
-entirely on generalist agents. Adding the Spring specialists would slot them into the same pipeline
-positions without changing the pipeline shape — the same motivation that produced `android-feature`,
-`android-tester`, and `compose-reviewer` for the Android tier.
-
-**A note on the Android agents:** `android-feature`, `android-tester`, and `compose-reviewer` are
-not missing and are not planned additions to this plugin's `agents/` directory. They are
-environment-dependent agents that come from the host Agent SDK — see the "Environment-dependent"
-table in orchestrator.md. The orchestrator falls back gracefully when they are absent.
-
----
-
 ## Usage evidence and telemetry
 
 There is currently no way to see which craftsman skills, agents, or hooks actually fired in a
