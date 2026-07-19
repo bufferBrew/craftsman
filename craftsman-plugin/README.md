@@ -23,7 +23,7 @@ skills, five slash commands, and a cross-platform hook system.
 | Symptom patched; the same bug returns next month under a new name | **Root-cause debugging** — no fix without an established root cause, and a [graphify](https://pypi.org/project/graphifyy/) knowledge graph catches *recurring* bugs before they're filed as new ones |
 | The same OS/shell quirk rediscovered by trial and error every session | **Environment-quirk memory** — discovered once, recorded in a stable file, never re-derived |
 | Scaffolding that writes files you didn't ask for | **Ask-before-writing setup** — `/craftsman:init` proposes exact file content and waits for confirmation, every run |
-| "Done!" (the build never actually ran) | **Honest completion** — every nontrivial task ends with a Caveats & status block: Verified / Assumed / Not covered |
+| "Done!" (the build never actually ran) | **Honest completion** — every nontrivial task ends with separate Status (Verified / Not covered) and Caveats (Assumed) sections |
 | Guessing which agent to chain next | **`@orchestrator`** — classifies the task, picks the minimal pipeline, and gates each stage on fresh evidence, not claims |
 
 ## 30-second start
@@ -170,7 +170,7 @@ the discipline:
 - Bug-shaped requests still get root-cause investigation (and the graphify check, if a graph
   exists) — "quick" skips pipeline overhead, not rigor.
 - Still runs the project's declared build/verify command.
-- Still ends with the Caveats & status section.
+- Still ends with the Status and Caveats sections.
 - If the change turns out bigger than it looked, it says so and stops instead of forcing it.
 
 You don't have to remember the command: `@orchestrator` also recognizes small-change wording

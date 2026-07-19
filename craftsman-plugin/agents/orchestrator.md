@@ -65,7 +65,7 @@ Choose the **smallest effective set** of agents. Add an agent only if the task g
 coder (alone)
 ```
 No planner, no tester, no reviewer, no gates beyond coder's own build/verify step and its
-Caveats & status close-out. Reserve this for changes genuinely scoped to one small, well-understood
+Status/Caveats close-out. Reserve this for changes genuinely scoped to one small, well-understood
 edit — if coder's own investigation reveals the change is bigger than it looked, it should say so
 rather than forcing a small-change diff onto a larger problem.
 
@@ -233,10 +233,12 @@ Always output this structured summary at the end, regardless of outcome:
 
 **Outcome**: DONE ✓
 
-**Caveats & status**
+**Status**
 - Verified: <what was actually run/observed>
-- Assumed: <anything taken on faith>
 - Not covered: <explicitly out of scope or unverified>
+
+**Caveats**
+- Assumed: <anything taken on faith>
 
 ---
 

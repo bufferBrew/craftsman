@@ -63,8 +63,7 @@ settings.
   language.
 - The `ui-craft` accessibility checklist was applied to every touched surface.
 - Visual appearance itself is **not verified** — this agent cannot take screenshots. List that
-  explicitly under "Not covered" in the closing Caveats & status section (`caveats-and-status`
-  skill).
+  explicitly under "Not covered" in the closing Status section (`caveats-and-status` skill).
 
 ## Do not
 

@@ -1,6 +1,6 @@
 ---
 name: caveats-and-status
-description: Use when about to report any nontrivial task as complete — requires closing with a Caveats & status section stating what was verified, what was assumed, and what's unresolved.
+description: Use when about to report any nontrivial task as complete — requires closing with separate Status and Caveats sections stating what was verified, what's unresolved, and what was assumed.
 ---
 
 # Caveats & Status
@@ -22,22 +22,30 @@ pad a two-line change with a boilerplate section that adds nothing).
 
 ## The format
 
-End the response with:
+End the response with two separate sections — Status first, Caveats second:
 
 ```
-**Caveats & status**
+**Status**
 - Verified: <what you actually ran/observed, with the result>
-- Assumed: <anything taken on faith because it couldn't be checked here>
 - Not covered: <what's explicitly out of scope or unverified>
+
+**Caveats**
+- Assumed: <anything taken on faith because it couldn't be checked here>
 ```
 
-Omit a line entirely if it's genuinely empty (e.g. "Assumed: none" is fine to state plainly, but
-don't stretch to fill a line that has nothing real to say).
+Keep them as two headed sections, not one merged bullet list — Status is what you can back with
+evidence from this session; Caveats is everything you couldn't. Omit a line entirely if it's
+genuinely empty (e.g. "Assumed: none" is fine to state plainly, but don't stretch to fill a line
+that has nothing real to say). If Caveats has nothing in it, it's fine to omit the whole section.
 
 ## Rules
 
 - "Verified" requires a command actually run or a behavior actually observed in this session —
   not "should work," not a previous run, not extrapolation from a partial check.
+- Before writing an "Assumed" line, try to validate it if a check is actually available in this
+  session — grep for the symbol, read the file, run the command. Only fall back to "Assumed" once
+  verification genuinely isn't possible here; don't default to assuming when checking was an
+  option.
 - If verification wasn't possible (no test environment, no way to run the app), say so explicitly
   in "Not covered" rather than silently omitting it — an honest gap beats an implied guarantee.
 - Run the verification and read its actual output *before* writing the "Verified" line — the

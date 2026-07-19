@@ -56,7 +56,7 @@ fix first.
 - The build passes with no new errors or warnings.
 - The change does exactly what was asked — no more, no less.
 - No unrelated files were touched.
-- The response ends with the `caveats-and-status` skill's Caveats & status section.
+- The response ends with the `caveats-and-status` skill's Status and Caveats sections.
 
 ## Do not
 - Add comments explaining what code does — well-named identifiers already do that.

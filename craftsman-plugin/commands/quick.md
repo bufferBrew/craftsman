@@ -29,6 +29,6 @@ it as a separate subagent call:
    — do not guess).
 6. If you take a deliberate shortcut, log it via the `logging-tradeoffs` skill rather than leaving
    a silent TODO.
-7. Close with the `caveats-and-status` skill's Caveats & status section.
+7. Close with the `caveats-and-status` skill's Status and Caveats sections.
 
 Never add a file, dependency, or scope beyond the literal request without asking first.
