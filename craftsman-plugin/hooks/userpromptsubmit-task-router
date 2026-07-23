@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# UserPromptSubmit hook — read the user's prompt, detect the task shape, and
+# surface the matching craftsman skill/agent so it loads from intent rather than
+# from a manual check. Emits at most one primary nudge (first, highest-priority
+# match wins) to stay quiet. Self-contained: references only craftsman:* skills
+# and this plugin's own agents — never assumes the superpowers plugin.
+
+set -uo pipefail
+
+input="$(cat)"
+
+extract_prompt() {
+  # python-primary (handles quoting/newlines), regex fallback if none works.
+  for pybin in python3 python; do
+    if command -v "$pybin" >/dev/null 2>&1; then
+      out=$(printf '%s' "$input" | "$pybin" -c "import json,sys; d=json.load(sys.stdin); print(d.get('prompt',''))" 2>/dev/null) && { printf '%s' "$out"; return; }
+    fi
+  done
+  printf '%s' "$input" | grep -o '"prompt"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 | sed -E 's/^"prompt"[[:space:]]*:[[:space:]]*"//; s/"$//'
+}
+
+low="$(extract_prompt 2>/dev/null | tr '[:upper:]' '[:lower:]')"
+
+emit() {
+  # $1 must contain no double-quote or backslash (kept plain so no JSON escaping
+  # is needed). Straight apostrophes are fine inside a JSON string.
+  printf '{"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":"%s"}}\n' "$1"
+}
+
+case "$low" in
+  *secret*|*vulnerab*|*" cve"*|*"security audit"*|*owasp*)
+    emit "Security-shaped request: route to the security agent (or /craftsman:security) for a PASS/FAIL audit; never skip it before a release." ;;
+  *"version bump"*|*"ready to ship"*|*"release checklist"*|*" deploy"*|*"play store"*)
+    emit "Release-shaped request: run the security agent, then release-prep, before shipping. Close out with Status + Caveats (craftsman:caveats-and-status)." ;;
+  *"github actions"*|*"pipeline failing"*|*"ci is red"*|*"ci failing"*|*"workflow failing"*)
+    emit "CI/CD-shaped request: root-cause with the cicd-debugger agent (read-only) before editing any workflow YAML." ;;
+  *refactor*|*restructure*|*"extract method"*|*"clean up this"*)
+    emit "Refactor-shaped request: walk craftsman:smallest-change-first, find callers first (refactor-agent), verify the build before and after, and close with Status + Caveats." ;;
+  *crash*|*" bug"*|*"is broken"*|*"not working"*|*"wrong behavior"*|*"fix the"*)
+    emit "Bug-shaped request: establish root cause first with the debugger agent; if graphify-out/graph.json exists, use craftsman:graphify-recurring-bugs before raw grep. Close with Status + Caveats." ;;
+  *" test"*|*"tests"*|*coverage*|*regression*)
+    emit "Testing-shaped request: the tester agent finds gaps, writes the tests, and runs the suite; it never edits production code." ;;
+  *readme*|*"document "*|*"docs for"*|*changelog*)
+    emit "Docs-shaped request: the docs-writer agent grounds every claim in current code, no speculation." ;;
+  *"pull request"*|*" commit"*|*"git push"*)
+    emit "Version-control request: apply craftsman:commit-craft (atomic commits, message format, branch naming). Commit/push/PR only when asked." ;;
+  *implement*|*"add a "*|*"add support"*|*"new screen"*|*"build a "*|*"new feature"*|*"let users"*)
+    emit "Feature-shaped request: if underspecified, run craftsman:ideation-first for a scope brief first; then plan, then walk craftsman:smallest-change-first before writing. Close with Status + Caveats." ;;
+esac
+
+exit 0

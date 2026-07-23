@@ -60,11 +60,15 @@ craftsman-plugin/
 │   ├── review.md                 /craftsman:review — direct reviewer routing
 │   └── security.md               /craftsman:security — direct security audit routing
 └── hooks/
-    ├── hooks.json                Hook wiring (SessionStart + PreToolUse)
-    ├── run-hook.cmd              Polyglot dispatcher (Windows CMD + Unix bash)
-    ├── session-start             Injects the plugin reminder into new sessions
-    ├── pretooluse-graphify-bash  "Use graphify first" hint on grep/find Bash calls
-    └── pretooluse-graphify-read  Same hint on Read/Glob of source files
+    ├── hooks.json                    Hook wiring (SessionStart, UserPromptSubmit, PreToolUse, Stop)
+    ├── run-hook.cmd                  Polyglot dispatcher (Windows CMD + Unix bash)
+    ├── session-start                 Injects the plugin reminder into new sessions
+    ├── userpromptsubmit-task-router  Routes the prompt to the matching skill/agent by task shape
+    ├── pretooluse-graphify-bash      "Use graphify first" hint on grep/find Bash calls
+    ├── pretooluse-graphify-read      Same hint on Read/Glob of source files
+    ├── pretooluse-git-guard          commit-craft hint on git commit/push/tag & gh pr calls
+    ├── pretooluse-edit-guard         File-pattern skill hints + drops the close-out session marker
+    └── stop-closeout                 Nudges caveats-and-status once, after real edits
 ```
 
 ## Requirements
@@ -106,8 +110,8 @@ Or from inside a session: `/plugin marketplace add bufferBrew/craftsman` then
 `/plugin install craftsman@craftsman`.
 
 Restart Claude Code (or start a new session) after installing. Verify with `claude plugin list`
-and inspect the loaded components with `claude plugin details craftsman` — it should report 14 agents. Claude Code counts commands as skills in the plugin details output: 8 skill files + 5 command files = 13 under the skills heading, and 2 hook events
-(SessionStart, PreToolUse), with an always-on cost of roughly 1.2k tokens per session.
+and inspect the loaded components with `claude plugin details craftsman` — it should report 14 agents. Claude Code counts commands as skills in the plugin details output: 8 skill files + 5 command files = 13 under the skills heading, and 4 hook events
+(SessionStart, UserPromptSubmit, PreToolUse, Stop). Only SessionStart has an always-on cost (roughly 1.2k tokens per session); the other three are event-driven and inject a short nudge only when a real signal matches — no idle cost.
 
 ### Option C — install from a local marketplace checkout
 
@@ -228,6 +232,40 @@ directly.
 | `ui-craft` | Before writing or changing any UI, in any framework. Design-token discipline (design-system/MASTER.md → theme layer → conventions), accessibility (contrast, touch targets, semantics), responsive layout, state-driven UI, motion restraint. Referenced by `ui-designer`. |
 | `graphify-recurring-bugs` | During bug investigation **only when** `graphify-out/graph.json` exists; complete no-op otherwise. See next section. |
 | `commit-craft` | Before any git commit, branch, or PR. Atomic commits; imperative ~50-char subject + why-focused body + `Co-Authored-By` trailer; branch naming; history hygiene (squash fixups, `--force-with-lease`); PR conventions (small, what/why/testing, `Closes #`, Claude Code trailer, green CI). Only commits/pushes/PRs when asked; branches first off `main`. |
+
+## Automatic skill routing (hooks)
+
+Skills load on demand, but you shouldn't have to remember which one applies. These event-driven
+hooks read the *shape* of what's happening and inject a one- or two-sentence nudge toward the right
+craftsman skill/agent — so the skill surfaces from intent, not from a manual check. Every hook is
+self-contained (it references only `craftsman:*` skills and this plugin's own agents, never another
+plugin) and fires only when a real signal matches, so quiet turns stay quiet.
+
+| Hook (event) | Fires when | Nudges toward |
+|---|---|---|
+| `userpromptsubmit-task-router` (UserPromptSubmit) | Your prompt matches a task shape (bug, feature, refactor, security, release, CI, testing, docs, version-control) | The matching agent + skill for that shape; at most one primary nudge per prompt |
+| `pretooluse-git-guard` (PreToolUse: Bash) | A `git commit`/`push`/`tag` or `gh pr` command is about to run | `commit-craft` conventions |
+| `pretooluse-edit-guard` (PreToolUse: Edit/Write/MultiEdit) | Editing a special file — `KNOWN_ISSUES.md`, a test file, or a CI workflow | `logging-tradeoffs` / tester discipline / cicd-debugger. Also drops the session marker the Stop hook reads |
+| `stop-closeout` (Stop) | The session actually changed code (marker present) and hasn't been reminded yet | `caveats-and-status` close-out, exactly once |
+| `session-start` (SessionStart) | New/cleared/compacted session | The whole skill set + proactive environment-quirks / graphify check |
+
+**Loop safety & noise control.** The Stop hook nudges only after a real edit (the edit-guard drops a
+per-session marker in a temp dir), fires **once**, then self-deletes the marker — and additionally
+honours Claude Code's `stop_hook_active` flag, so it can never re-trigger itself. The prompt router
+emits at most one nudge and stays silent on anything it doesn't recognise. General
+`smallest-change-first` reminders ride on the prompt router (once per matching prompt) rather than on
+every individual edit, to avoid nagging.
+
+**Not implemented as hooks (by design).** A few routing ideas are *model* behaviors, not shell-event
+behaviors, so they live in the agents/orchestrator rather than in a hook:
+
+- **Skill chaining** (planner → coder → tester → reviewer) — no event fires on "a skill finished";
+  the `orchestrator` agent sequences this instead.
+- **Parallel skill analysis** — orchestration, handled by the `orchestrator`'s parallelism rule.
+- **Negative filtering** (skipping skills that don't apply) — that's just the model reading each
+  skill's `description`; no hook needed.
+- **Contextual caching** (remembering which skills fired to pre-warm related requests) — hooks are
+  stateless per-invocation; deliberately left out to avoid a fragile cross-session state file.
 
 ## Graphify integration (recurring bugs)
 

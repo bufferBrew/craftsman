@@ -10,9 +10,8 @@ REM prepends "bash" to any command containing .sh -- doesn't interfere.
 REM
 REM Usage: run-hook.cmd <script-name> [args...]
 REM
-REM Adapted from the same pattern used by the superpowers plugin
-REM (obra/superpowers, hooks/run-hook.cmd) — generic, not tied to any
-REM specific hook's logic.
+REM Generic dispatcher — not tied to any specific hook's logic. The plugin is
+REM self-contained: it depends on no other plugin being installed.
 
 if "%~1"=="" (
     echo run-hook.cmd: missing script name >&2

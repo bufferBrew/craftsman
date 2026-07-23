@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# Stop hook — after real code work in a session (marker dropped by the
+# pretooluse-edit-guard hook), nudge a craftsman:caveats-and-status close-out
+# exactly once. Loop-safe two ways: it honours stop_hook_active AND deletes the
+# marker after firing, so it can never re-trigger itself. Fires nothing on
+# chat-only sessions (no marker => no nudge). Self-contained.
+
+set -uo pipefail
+
+input="$(cat)"
+
+pick_python() {
+  for pybin in python3 python; do
+    if command -v "$pybin" >/dev/null 2>&1 && "$pybin" -c "import sys" >/dev/null 2>&1; then
+      printf '%s' "$pybin"; return 0
+    fi
+  done
+  return 1
+}
+
+session_id=""
+active="false"
+if pybin=$(pick_python); then
+  parsed="$(printf '%s' "$input" | "$pybin" -c "
+import json, sys
+d = json.load(sys.stdin)
+print(str(d.get('session_id') or ''))
+print('true' if d.get('stop_hook_active') else 'false')
+" 2>/dev/null)"
+  session_id="$(printf '%s' "$parsed" | sed -n '1p')"
+  active="$(printf '%s' "$parsed" | sed -n '2p')"
+else
+  printf '%s' "$input" | grep -q '"stop_hook_active"[[:space:]]*:[[:space:]]*true' && active="true"
+  session_id="$(printf '%s' "$input" | grep -o '"session_id"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 | sed -E 's/.*:[[:space:]]*"//; s/"$//')"
+fi
+
+# Already continued once, or no session to key on: do nothing.
+[ "$active" = "true" ] && exit 0
+[ -n "$session_id" ] || exit 0
+
+marker="${TMPDIR:-/tmp}/craftsman-hooks/edited-$session_id"
+[ -f "$marker" ] || exit 0
+rm -f "$marker" 2>/dev/null || true
+
+printf '{"decision":"block","reason":"Code changed this session. Before finishing, close out in the craftsman:caveats-and-status format: a Status section (what you actually ran and verified vs. what you did not) and a Caveats section (assumptions made, known gaps). If you already provided both, just stop."}\n'
+
+exit 0

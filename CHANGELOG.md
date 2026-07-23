@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers track `.claude-plugin/plugin.json` (kept in sync with the root
 `marketplace.json`).
 
+## [0.8.0] - 2026-07-23
+
+### Added
+- Automatic skill-routing hooks so craftsman skills surface from task shape instead of a manual
+  check. Four new event-driven hooks, all self-contained (they reference only `craftsman:*` skills
+  and this plugin's own agents, never another plugin) and quiet by default (a nudge fires only on a
+  real signal): `userpromptsubmit-task-router` (routes the prompt to the matching agent/skill by
+  task shape — bug, feature, refactor, security, release, CI, testing, docs, version-control),
+  `pretooluse-git-guard` (commit-craft hint on `git commit`/`push`/`tag` & `gh pr`),
+  `pretooluse-edit-guard` (file-pattern skill hints for `KNOWN_ISSUES.md`/test/workflow files, and
+  drops the session marker the close-out hook reads), and `stop-closeout` (nudges
+  caveats-and-status once after real edits, then self-deletes its marker — loop-safe via both the
+  marker and `stop_hook_active`).
+- New hook events wired in `hooks.json`: `UserPromptSubmit` and `Stop` (previously only
+  `SessionStart` + `PreToolUse`).
+
+### Changed
+- `session-start`: added a proactive lead-in to check `environment-quirks.md` before retrying a
+  failed command, and to prefer graphify for navigation when `graphify-out/graph.json` exists.
+- `run-hook.cmd`: reworded to drop the superpowers-plugin attribution — the dispatcher and the
+  whole plugin depend on no other plugin being installed.
+- README: new "Automatic skill routing (hooks)" section documenting the six hooks, plus the four
+  routing ideas (skill chaining, parallel analysis, negative filtering, contextual caching) that
+  are intentionally model/orchestrator behaviors rather than hooks.
+
 ## [0.7.0] - 2026-07-17
 
 ### Added

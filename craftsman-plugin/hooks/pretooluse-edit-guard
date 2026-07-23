@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# PreToolUse hook (Edit|Write|MultiEdit matcher) — two jobs:
+#   1. Drop a per-session marker so the Stop close-out hook knows real code work
+#      happened this session (so caveats-and-status fires only after edits, not
+#      on chat-only turns). The marker is a single self-cleaning temp file keyed
+#      by session_id — deleted by the Stop hook after it fires once.
+#   2. Inject a file-pattern-specific craftsman-skill nudge for special files.
+#      The general smallest-change-first reminder lives in the prompt router, not
+#      here, so we don't nag on every single edit.
+# Self-contained: references only craftsman:* skills / this plugin's agents.
+
+set -uo pipefail
+
+input="$(cat)"
+
+pick_python() {
+  for pybin in python3 python; do
+    if command -v "$pybin" >/dev/null 2>&1 && "$pybin" -c "import sys" >/dev/null 2>&1; then
+      printf '%s' "$pybin"; return 0
+    fi
+  done
+  return 1
+}
+
+file_path=""
+session_id=""
+if pybin=$(pick_python); then
+  parsed="$(printf '%s' "$input" | "$pybin" -c "
+import json, sys
+d = json.load(sys.stdin)
+t = d.get('tool_input', d)
+print(str(d.get('session_id') or ''))
+print(str(t.get('file_path') or ''))
+" 2>/dev/null)"
+  session_id="$(printf '%s' "$parsed" | sed -n '1p')"
+  file_path="$(printf '%s' "$parsed" | sed -n '2p')"
+fi
+if [ -z "$file_path" ]; then
+  file_path="$(printf '%s' "$input" | grep -o '"file_path"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 | sed -E 's/.*:[[:space:]]*"//; s/"$//')"
+fi
+
+# 1. Session marker for the Stop close-out hook.
+if [ -n "$session_id" ]; then
+  marker_dir="${TMPDIR:-/tmp}/craftsman-hooks"
+  mkdir -p "$marker_dir" 2>/dev/null || true
+  : > "$marker_dir/edited-$session_id" 2>/dev/null || true
+fi
+
+# 2. File-pattern nudges (quiet by design — only special files trigger a note).
+low="$(printf '%s' "$file_path" | tr '[:upper:]' '[:lower:]' | tr '\\' '/')"
+case "$low" in
+  *known_issues.md)
+    printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","additionalContext":"Editing KNOWN_ISSUES.md — follow craftsman:logging-tradeoffs: one entry per documented shortcut with symptom, why, and the known-good fix."}}\n' ;;
+  *.test.*|*.spec.*|*_test.*|*/test/*|*/tests/*|*/__tests__/*)
+    printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","additionalContext":"Editing a test file — this is the tester agent domain: keep production code untouched, add or adjust coverage only, and run the suite to verify."}}\n' ;;
+  */.github/workflows/*)
+    printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","additionalContext":"Editing a CI workflow — a local pass does not guarantee CI passes. If chasing a CI failure, root-cause with the cicd-debugger agent before editing YAML."}}\n' ;;
+esac
+
+exit 0
