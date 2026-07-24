@@ -24,6 +24,17 @@ Version numbers track `.claude-plugin/plugin.json` (kept in sync with the root
   `SessionStart` + `PreToolUse`).
 
 ### Changed
+- `orchestrator`: gate and repair hardening. Adds a **handoff contract** — every dispatched agent
+  must close with `STATUS`/`FILES CHANGED`/`VERIFIED BY`/`EVIDENCE`/`CAVEATS`, and gates are checked
+  against that block rather than the agent's prose, so a missing evidence line now fails the gate
+  instead of passing on confidence. The repair loop **escalates** rather than retrying: attempt 2
+  routes to a different agent (`debugger` for build/test failures, `planner` for review findings)
+  before re-implementing. The parallelism rule now forbids two file-writing agents running
+  concurrently (the old "different output artifacts" wording permitted it) and states that parallel
+  dispatch means multiple `Agent` calls in one message. Also: one-sentence scope restatement and a
+  new-dependency stop before pipeline selection, a bugfix requirement that the regression test fail
+  before the fix and pass after, `Files changed` / `Verification run` lines on the report, and an
+  explicit "never commit, push, branch, or open a PR unless asked" constraint.
 - `session-start`: added a proactive lead-in to check `environment-quirks.md` before retrying a
   failed command, and to prefer graphify for navigation when `graphify-out/graph.json` exists.
 - `run-hook.cmd`: reworded to drop the superpowers-plugin attribution — the dispatcher and the
