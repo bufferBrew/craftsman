@@ -13,7 +13,7 @@
 
 **craftsman** makes engineering discipline the default in [Claude Code](https://code.claude.com):
 the smallest correct change, no fix without a root cause, and an honest report of what was
-actually verified. It bundles fourteen agents, eight skills, five slash commands, and a cross-platform
+actually verified. It bundles fourteen agents, eight skills, six slash commands, and a cross-platform
 hook system — installable in two commands.
 
 <p align="center">
@@ -41,7 +41,7 @@ project to get started.
 
 | Problem | Before | With craftsman |
 |---|---|---|
-| Choosing the right agent pipeline | Trial-and-error chaining of agents | `@orchestrator` classifies the task, picks the minimal pipeline, and gates each stage on fresh evidence |
+| Choosing the right agent pipeline | Trial-and-error chaining of agents | `/craftsman:orchestrate` classifies the task, picks the minimal pipeline, and gates each stage on fresh evidence |
 | Diffs grow beyond the request | "Fixed it" — plus an uninvited refactor of three other files | **Minimal-diff coding** — the smallest change that solves the problem; anything extra needs your OK first |
 | The same bug returns under a new name | Symptom patched, root cause untouched | **Root-cause debugging** — no fix without an established root cause; a [graphify](https://pypi.org/project/graphifyy/) knowledge graph catches recurring bugs before they're filed as new ones |
 | Finding relevant code takes forever | Raw grep through files | Query the graphify graph first — hooks nudge every grep/find toward it in graphed projects |

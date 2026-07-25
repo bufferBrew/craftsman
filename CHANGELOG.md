@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers track `.claude-plugin/plugin.json` (kept in sync with the root
 `marketplace.json`).
 
+## [0.9.0] - 2026-07-25
+
+### Added
+- `/craftsman:orchestrate <task>`: a slash command for the full pipeline. The orchestrator was the
+  only major entry point without one, so it never appeared in the `/` menu — every other command
+  (`init`, `quick`, `doctor`, `review`, `security`) did. It runs the orchestrator's discipline in
+  the **main thread** rather than dispatching the agent as a subagent, for two reasons:
+  orchestration *is* subagent dispatch and nesting that is unreliable, and the ideation gate needs
+  interactive Q&A that a subagent cannot hold (as a subagent, `orchestrator` must bounce
+  underspecified features back to its caller). `@craftsman:orchestrator` still works for running
+  the pipeline in its own context.
+
 ## [0.8.0] - 2026-07-23
 
 ### Added

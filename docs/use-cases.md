@@ -39,7 +39,7 @@ the "new" bug is likely the same root cause resurfacing. If the match lands on a
 entry, its recorded one-line fix is recalled for reuse instead of being re-derived.
 
 ```
-@orchestrator fix the crash in InvoiceService when the line-item list is empty
+/craftsman:orchestrate fix the crash in InvoiceService when the line-item list is empty
 ```
 
 Nothing is auto-merged or auto-fixed — matches are surfaced for you to judge.
