@@ -60,8 +60,9 @@ End by producing this block. It is the hand-off to the planner; keep it compact.
 - Open questions: <anything still unresolved, or "none">
 ```
 
-When routing through `@orchestrator`, pass this brief in the invocation so the planner receives it —
-a cold subagent can't see the conversation it wasn't part of.
+When routing through `@craftsman:orchestrator`, pass this brief in the invocation so the planner
+receives it — a cold subagent can't see the conversation it wasn't part of. (`/craftsman:orchestrate`
+runs in the main thread, so it already has the brief.)
 
 ## Red flags
 

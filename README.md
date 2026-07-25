@@ -17,7 +17,7 @@ actually verified. It bundles fourteen agents, eight skills, six slash commands,
 hook system — installable in two commands.
 
 <p align="center">
-  <img src="./craftsman-demo.svg" alt="Terminal demo: @orchestrator runs the bugfix pipeline — debugger finds the root cause via graphify, coder ships a +4 −1 diff with a passing build, tester adds a regression test, and the run ends with a Verified / Assumed / Not covered status block" width="780">
+  <img src="./craftsman-demo.svg" alt="Terminal demo: the craftsman orchestrator runs the bugfix pipeline — debugger finds the root cause via graphify, coder ships a +4 −1 diff with a passing build, tester adds a regression test, and the run ends with a Verified / Assumed / Not covered status block" width="780">
 </p>
 
 ## Install

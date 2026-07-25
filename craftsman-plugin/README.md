@@ -199,7 +199,8 @@ You don't have to remember the command: `/craftsman:orchestrate` also recognizes
 
 ## Agents reference
 
-Invoke any agent with `@<name> <task>` or let `/craftsman:orchestrate <task>` route for you.
+Invoke any agent with `@craftsman:<name> <task>` — plugin agents are namespaced, so a bare
+`@<name>` matches nothing in the picker. Or let `/craftsman:orchestrate <task>` route for you.
 
 | Agent | Model | Writes files? | Use for |
 |---|---|---|---|

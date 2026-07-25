@@ -19,6 +19,13 @@ Version numbers track `.claude-plugin/plugin.json` (kept in sync with the root
   underspecified features back to its caller). `@craftsman:orchestrator` still works for running
   the pipeline in its own context.
 
+### Fixed
+- Agent invocation is documented as `@craftsman:<name>` throughout. Plugin agents are namespaced,
+  so the bare `@<name>` form the docs taught — `@orchestrator` in both READMEs, `docs/use-cases.md`,
+  and the `ideation-first` skill — matches nothing in the agent picker, making the orchestrator look
+  like it wasn't installed. Note: `craftsman-demo.svg` still shows `@orchestrator` in its rendered
+  terminal text; correcting it requires regenerating the asset.
+
 ## [0.8.0] - 2026-07-23
 
 ### Added
