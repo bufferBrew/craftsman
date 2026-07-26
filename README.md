@@ -13,7 +13,7 @@
 
 **craftsman** makes engineering discipline the default in [Claude Code](https://code.claude.com):
 the smallest correct change, no fix without a root cause, and an honest report of what was
-actually verified. It bundles fourteen agents, eight skills, six slash commands, and a cross-platform
+actually verified. It bundles fifteen agents, eight skills, seven slash commands, and a cross-platform
 hook system — installable in two commands.
 
 <p align="center">

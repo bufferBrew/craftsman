@@ -7,6 +7,64 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers track `.claude-plugin/plugin.json` (kept in sync with the root
 `marketplace.json`).
 
+## [0.10.0] - 2026-07-26
+
+### Added
+- `/craftsman:discover <vague idea>`: a requirements-discovery interview that turns an
+  underspecified request into a numbered, testable spec. It exists because the shallow end of
+  `ideation-first` was the only option — 3–5 questions and a three-line brief, with no way to invoke
+  it deliberately, so a substantially open request ("build a notifications system") got the same
+  treatment as a merely fuzzy one.
+
+  The work is split across two surfaces because of a hard constraint: **a subagent cannot conduct an
+  interview.** It receives one cold prompt and returns one result, which is why `orchestrator` already
+  has to bounce underspecified features back to its caller. So the interview runs in the main thread
+  as a command, and only the half a subagent is genuinely good at — reading the codebase — is
+  delegated.
+- `requirements-analyst` agent (read-only: Read/Glob/Grep, Opus): drafts the clarifying questions a
+  request leaves unanswered, grounded in prior art and existing abstractions rather than a generic
+  checklist. Every question carries a `file:line` or an explicit "gap" label, plus an assumption
+  default so the interview never stalls on a declined question; questions the code already settles
+  come back as *constraints* instead. Capped at 10–20 questions — past that, it is asking things the
+  codebase already answers. It never asks the user anything itself and never writes files.
+
+### Changed
+- `ideation-first`: now runs at two depths. **Quick** is unchanged and still the default (3–5
+  questions, one per turn, Scope brief). **Deep** grounds 10–20 questions in the analyst's dossier and
+  asks them in **3–4 sequenced rounds of 2–4 questions** via `AskUserQuestion` — a deliberate
+  divergence from the one-question-per-turn rule, which is right for five questions and punishing for
+  fifteen. What the rule actually protects is that later questions adapt to earlier answers, and
+  sequenced *rounds* preserve that; batching all fifteen at once does not.
+
+  Deep mode ends by writing a numbered requirements spec (`R1`, `R2`, … each with an acceptance
+  criterion, so `tester` and `reviewer` can trace coverage back to a requirement) at
+  `docs/requirements/<slug>.md` — proposed, shown in full, and written only on confirmation, per the
+  same ask-before-writing rule `/craftsman:init` follows. The **Scope brief** is still emitted inline
+  at both depths and remains the machine handoff the planner and the orchestrator's ideation gate
+  consume; the spec file is additive, and the brief gained a `Spec:` line pointing at it.
+
+  New explicit rule: **expand the questions, bound the scope.** Deep mode raises error states, empty
+  states, migration, and offline behavior — then still recommends the smallest build that satisfies
+  the request, with everything surfaced but unagreed recorded under Out of scope. A deep interview
+  that ends with a *bigger* scope than a quick one has failed; it should end with the same scope, held
+  with more confidence and a longer out-of-scope list. Without this, deep mode would have quietly
+  contradicted `smallest-change-first`.
+- `orchestrator`: the ideation gate now accepts either an inline Scope brief or a path to a
+  requirements spec, and instructs the planner to read the spec when one is named. Availability table
+  gains `requirements-analyst`.
+- `/craftsman:orchestrate`: the ideation-gate step routes substantially open requests to deep mode
+  rather than a three-line brief.
+- `userpromptsubmit-task-router`: the feature-shaped nudge names `/craftsman:discover` for
+  substantially open requests. Still one nudge per prompt; no new `case` branch.
+
+### Fixed
+- `session-start` announced "Seven skills" and "Five commands" — both already wrong before this
+  release (8 and 6), and both invisible to CI: the count validator skips any line containing
+  "commands" when checking skills, and only matches the literal phrase "N slash commands" for
+  commands. The whole reminder is a single line, so both slipped through every check. The skill list
+  was also missing `ui-craft` and the command list was missing `/craftsman:orchestrate` — a session
+  therefore started without being told two components existed.
+
 ## [0.9.0] - 2026-07-25
 
 ### Added

@@ -109,11 +109,13 @@ researcher (only if APIs, libraries, or MCP-server coverage are unknown)
   → docs-writer (only if public API surface changed)
 ```
 **Ideation gate (before planner):** if the request is underspecified — goal, boundaries, or
-success criteria open to interpretation — and no **Scope brief** was supplied in your invocation,
-**stop**. You are a subagent and cannot hold the interactive Q&A this needs. Instruct the caller to
-run the `ideation-first` skill in the main thread first, then re-invoke you with the resulting scope
-brief. Do **not** dispatch the planner against guesses. When a scope brief *is* present (or the
-request is already well-specified), proceed and pass the brief into the planner's prompt verbatim.
+success criteria open to interpretation — and neither a **Scope brief** nor a path to a requirements
+spec was supplied in your invocation, **stop**. You are a subagent and cannot hold the interactive
+Q&A this needs. Instruct the caller to run the `ideation-first` skill in the main thread first (or
+`/craftsman:discover` for a substantially open request, which produces a numbered spec), then
+re-invoke you with the resulting scope brief. Do **not** dispatch the planner against guesses. When a
+brief *is* present (or the request is already well-specified), proceed and pass the brief into the
+planner's prompt verbatim; if it names a spec file, tell the planner to read that path too.
 
 **bugfix**
 ```
@@ -232,7 +234,7 @@ ran did not verify anything. Never infer a passing build from an agent's confide
 
 | Agent | Gate — must pass before proceeding |
 |---|---|
-| `ideation-first` (feature/greenfield refactor) | A **Scope brief** is present — either supplied in your invocation or produced by the main-thread skill — before the planner runs. If the request is underspecified and no brief exists, do not proceed; bounce back per the ideation gate. Well-specified requests pass this trivially. |
+| `ideation-first` (feature/greenfield refactor) | A **Scope brief** is present — either supplied in your invocation or produced by the main-thread skill — before the planner runs, or the invocation names a requirements spec file the planner can read. If the request is underspecified and neither exists, do not proceed; bounce back per the ideation gate. Well-specified requests pass this trivially. |
 | `planner` | Output contains numbered steps and at least one "Files to change" entry. |
 | `debugger` | Root cause is stated in one sentence, the failure was reproduced (fresh output shown), and the hand-off names a fix location + failing-test spec. Read-only — it does not apply the fix. |
 | `coder` / `ui-designer` | Build passes — the project's declared build/verify command succeeds, AND the report shows fresh command output, not just a claim (verification-before-completion — no completion claim without evidence run in this session). |
@@ -325,6 +327,7 @@ Read this before building any pipeline. Do not use agents marked "unavailable".
 ### Available — have .md files in this plugin's `agents/` directory
 | Agent | Role | Read-only? |
 |---|---|---|
+| `requirements-analyst` | Drafts codebase-grounded clarifying questions for an underspecified request; returns a question dossier, asks the user nothing | Yes |
 | `planner` | Decomposes tasks into ordered steps | Yes |
 | `debugger` | Root-cause diagnosis: reproduce, trace, hand off fix location + repro recipe | Yes (+ Bash to reproduce) |
 | `coder` | Minimal-diff implementation, runs build | No |

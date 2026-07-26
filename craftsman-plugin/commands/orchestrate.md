@@ -29,7 +29,10 @@ with the deviations noted above. The operational spine:
    boundaries, or success criteria open to interpretation — run the `craftsman:ideation-first`
    skill *first* and carry its Scope brief verbatim into the planner's prompt. Unlike the
    orchestrator subagent, which must bounce this back to its caller, you can hold that conversation
-   directly. Well-specified requests skip it.
+   directly. Well-specified requests skip it. If the request is *substantially* open — a whole new
+   surface, with real integration and error-handling questions — use the skill's deep mode (or send
+   the user to `/craftsman:discover`) for a numbered requirements spec instead of a three-line brief,
+   and pass the spec's path to the planner alongside the brief.
 
 4. **Select the minimal pipeline** for the task type. Do not add agents the task doesn't require —
    more agents means more latency and noise. Parallel dispatch means multiple `Agent` calls in a

@@ -45,7 +45,7 @@ case "$low" in
   *"pull request"*|*" commit"*|*"git push"*)
     emit "Version-control request: apply craftsman:commit-craft (atomic commits, message format, branch naming). Commit/push/PR only when asked." ;;
   *implement*|*"add a "*|*"add support"*|*"new screen"*|*"build a "*|*"new feature"*|*"let users"*)
-    emit "Feature-shaped request: if underspecified, run craftsman:ideation-first for a scope brief first; then plan, then walk craftsman:smallest-change-first before writing. Close with Status + Caveats." ;;
+    emit "Feature-shaped request: if underspecified, run craftsman:ideation-first for a scope brief first (or /craftsman:discover for a substantially open request — it grounds the questions in the codebase and produces a numbered spec); then plan, then walk craftsman:smallest-change-first before writing. Close with Status + Caveats." ;;
 esac
 
 exit 0

@@ -12,8 +12,8 @@
 </p>
 
 A Claude Code plugin that makes engineering discipline the default: the smallest correct change,
-no fix without a root cause, and an honest report of what was actually verified. Fourteen agents, eight
-skills, six slash commands, and a cross-platform hook system.
+no fix without a root cause, and an honest report of what was actually verified. Fifteen agents, eight
+skills, seven slash commands, and a cross-platform hook system.
 
 ## Why craftsman
 
@@ -51,11 +51,12 @@ Worked examples in [docs/use-cases.md](../docs/use-cases.md); contributions welc
 ```
 craftsman-plugin/
 ├── .claude-plugin/plugin.json    Plugin manifest
-├── agents/                       Fourteen agents (see Agents reference)
+├── agents/                       Fifteen agents (see Agents reference)
 ├── skills/                       Eight skills (see Skills reference)
 ├── commands/
 │   ├── init.md                   /craftsman:init — project scaffolder
 │   ├── orchestrate.md            /craftsman:orchestrate — full pipeline, end to end
+│   ├── discover.md               /craftsman:discover — requirements interview → numbered spec
 │   ├── quick.md                  /craftsman:quick — small-change fast path
 │   ├── doctor.md                 /craftsman:doctor — install health check (--fix to remediate)
 │   ├── review.md                 /craftsman:review — direct reviewer routing
@@ -111,7 +112,7 @@ Or from inside a session: `/plugin marketplace add bufferBrew/craftsman` then
 `/plugin install craftsman@craftsman`.
 
 Restart Claude Code (or start a new session) after installing. Verify with `claude plugin list`
-and inspect the loaded components with `claude plugin details craftsman` — it should report 14 agents. Claude Code counts commands as skills in the plugin details output: 8 skill files + 6 command files = 14 under the skills heading, and 4 hook events
+and inspect the loaded components with `claude plugin details craftsman` — it should report 15 agents. Claude Code counts commands as skills in the plugin details output: 8 skill files + 7 command files = 15 under the skills heading, and 4 hook events
 (SessionStart, UserPromptSubmit, PreToolUse, Stop). Only SessionStart has an always-on cost (roughly 1.2k tokens per session); the other three are event-driven and inject a short nudge only when a real signal matches — no idle cost.
 
 ### Option C — install from a local marketplace checkout
@@ -181,6 +182,34 @@ and the ideation gate needs interactive Q&A, which the main thread can hold and 
 `@craftsman:orchestrator <task>` still works and is the right choice when you want the pipeline run
 in its own context.
 
+### `/craftsman:discover <vague idea>`
+
+Turns an idea that isn't specified well enough to plan into a numbered, testable requirements spec.
+Runs the `ideation-first` skill's **deep mode**:
+
+1. Dispatches the read-only `requirements-analyst`, which reads the codebase and drafts the questions
+   the request leaves unanswered — each grounded in a `file:line` or labelled an explicit gap, with an
+   assumption default so the interview never stalls. Questions the code already answers come back as
+   *constraints*, not questions.
+2. Interviews you in the main thread: 3–4 sequenced rounds of 2–4 related questions, via
+   `AskUserQuestion` so each is a click rather than an essay. Rounds are sequenced — purpose and scope,
+   then behavior and integration, then acceptance criteria — so later questions adapt to earlier
+   answers.
+3. Proposes a spec at `docs/requirements/<slug>.md` (redirectable), shows the full content, and writes
+   only on confirmation. Every requirement is numbered `R1`, `R2`, … with an acceptance criterion, so
+   `tester` and `reviewer` can trace coverage back to a requirement.
+4. Emits the `ideation-first` **Scope brief** inline as well — that block, not the spec file, is what
+   `planner` and the orchestrator's ideation gate consume.
+
+The interview runs in the main thread by necessity: a subagent gets one cold prompt and returns one
+result, so it cannot hold a conversation. Only the question-drafting half is delegated. Use plain
+`ideation-first` (3–5 questions, scope brief, no file) when the request is merely fuzzy rather than
+substantially open — deep mode on a small feature is ceremony.
+
+**It expands the questions, not the scope.** The interview deliberately raises error states, empty
+states, migration, and offline behavior — then still recommends the smallest build that satisfies the
+request. Everything surfaced but not agreed lands under **Out of scope**, recorded rather than built.
+
 ### `/craftsman:quick <description of the small change>`
 
 Fast path for genuinely small, well-understood edits — typo fixes, one-line logic changes, small
@@ -205,6 +234,7 @@ Invoke any agent with `@craftsman:<name> <task>` — plugin agents are namespace
 | Agent | Model | Writes files? | Use for |
 |---|---|---|---|
 | `orchestrator` | Opus | No (delegates) | Any multi-step task; picks the smallest pipeline, enforces gates, max 2 repairs per gate, structured report |
+| `requirements-analyst` | Opus | No | Drafting the clarifying questions an underspecified request leaves open — grounded in prior art and `file:line` evidence, with an assumption default each. Returns a question dossier for a main-thread interviewer; asks the user nothing itself. Normally reached via `/craftsman:discover` |
 | `planner` | Haiku | No | Decomposing a feature/bug into ordered steps before coding |
 | `coder` | Opus | Yes | The implementation itself — minimal diff, runs the build, asks before adding anything extra |
 | `ui-designer` | Opus | Yes | UI-flavored implementation — detects the UI framework (Compose, Flutter, React, SwiftUI, web), applies design-system tokens, a11y, responsive layout per the `ui-craft` skill; minimal diff, runs the build |
@@ -223,7 +253,9 @@ Invoke any agent with `@craftsman:<name> <task>` — plugin agents are namespace
 
 - `quick` → `coder` alone
 - `feature` → *ideation gate* (if underspecified, main-thread `ideation-first` skill produces a
-  scope brief first) → `researcher?` → `planner` → `coder` → `tester` → `reviewer` → `docs-writer?`
+  scope brief first — or `/craftsman:discover` a full spec, via `requirements-analyst`, when the
+  request is substantially open) → `researcher?` → `planner` → `coder` → `tester` → `reviewer` →
+  `docs-writer?`
 - `bugfix` → `debugger` (read-only root-cause 4-phase method + quirks/KNOWN_ISSUES/graphify; hands
   off fix location + repro recipe) → `coder` → `tester` → `reviewer`
 - UI-flavored `feature`/`bugfix`/`quick` (screens, components, styling, layout) → same pipeline
@@ -242,7 +274,7 @@ directly.
 
 | Skill | When it applies |
 |---|---|
-| `ideation-first` | Before planning a new feature or greenfield refactor whose requirements aren't pinned down. Asks 3–5 clarifying questions one at a time, then emits a **Scope brief** (Goal / In scope / Out of scope / Key decisions / Open questions) the planner builds on. Skipped for well-specified requests, `quick`, and `bugfix`. Runs in the main thread (interactive). `/craftsman:orchestrate` runs it directly; the `@craftsman:orchestrator` subagent gates on the brief's presence rather than running it itself. |
+| `ideation-first` | Before planning a new feature or greenfield refactor whose requirements aren't pinned down. Two depths: **quick** (default) asks 3–5 questions one at a time and emits a **Scope brief** (Goal / In scope / Out of scope / Key decisions / Open questions); **deep** (`/craftsman:discover`) grounds 10–20 questions in a `requirements-analyst` dossier, asks them in 3–4 sequenced rounds, and writes a numbered requirements spec — still emitting the brief, which stays the machine handoff. Expands the *questions*, not the scope: extra findings land in Out of scope. Skipped for well-specified requests, `quick`, and `bugfix`. Runs in the main thread (interactive). `/craftsman:orchestrate` runs it directly; the `@craftsman:orchestrator` subagent gates on the brief's presence rather than running it itself. |
 | `smallest-change-first` | Before writing any new code/file/dependency. Seven-step ladder: needs to exist? → already in codebase? → stdlib? → platform feature? → existing dependency? → one line? → only then write the minimum. Source of the "ask before anything extra" rule. |
 | `logging-tradeoffs` | When taking a deliberate shortcut, investigating a possibly-logged bug, or resolving an entry. Defines the `KNOWN_ISSUES.md` format: what changed / ceiling / upgrade trigger / status. |
 | `environment-memory` | Before retrying anything that failed once; after discovering an OS/shell/tool quirk. Reads/appends `~/.claude/craftsman-memory/environment-quirks.md`. |
