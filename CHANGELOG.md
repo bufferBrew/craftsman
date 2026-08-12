@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers track `.claude-plugin/plugin.json` (kept in sync with the root
 `marketplace.json`).
 
+## [0.11.0] - 2026-08-12
+
+### Added
+- **Bundled MCP servers** (`craftsman-plugin/.mcp.json`): `figma` (the hosted remote server) and
+  `chrome-devtools` (Google's official `chrome-devtools-mcp`). Both serve the UI surface —
+  `ui-designer` and `ui-craft` — and both are opt-in, going through Claude Code's per-server
+  approval like any project `.mcp.json`. Declining both leaves every agent, skill and command
+  working; nothing hard-depends on them.
+
+  `chrome-devtools` in particular closes the gap `ui-designer` has always had to declare under
+  "Not covered": a build check proves a UI compiles, not that it renders, and hover/focus states
+  only exist in a live browser. See the plugin README's *MCP servers* section for the security
+  notes on each (Figma OAuth scope; Chrome profile isolation).
+
+### Changed
+- `ui-craft` gained four sections covering failure modes that pass visual review and still ship
+  broken. All four came out of an interaction audit of a real Flutter app, where every one of
+  them was live in production code:
+  - **Every control is keyboard-operable.** The skill previously said only "keyboard/focus order
+    follows visual order" — which assumes the control is focusable at all. A tap handler on a
+    plain container (`GestureDetector`, `onClick` on a `<div>`) is invisible to Tab traversal, so
+    a shared button component built that way makes an entire app unusable without a pointer. It
+    is a WCAG 2.1.1 failure that looks perfect in a screenshot. The section names the four
+    properties to verify — reachable, operable, visibly focused, correctly excluded when disabled
+    — and asks for a behavioral test, since none of this is visible in a diff.
+  - **The four interaction states are one set.** hover / focus / pressed / disabled: define one,
+    owe all four. Notes that focus is not hover, and that transparent button variants have no
+    fill to darken and so need their own hover treatment.
+  - **Measure the slot, not the window.** Breakpoint logic must read the container's width, not
+    the viewport's. Mixing them — sizing cells from the local constraint while counting columns
+    from the viewport — is what produces overflow and dead columns.
+  - **Fixed extents and scaled text do not mix.** Any hardcoded height wrapping text overflows at
+    the 1.5–2x text scale users actually set.
+
+  Also under *State-driven UI*: distinguish offline from server failure (an auth rejection
+  arrived over a working connection, so "check your connection" sends the user to debug the wrong
+  thing), and give skeletons the same extents as the content they stand in for.
+- `ui-designer` now calls out those same four checks explicitly in its **Craft** section rather
+  than deferring wholesale to the skill, and its "Not covered" contract widened: contrast ratios,
+  real text-scale behavior, and hover/focus appearance are all outside what a build check proves
+  and must be reported as unverified.
+
 ## [0.10.0] - 2026-07-26
 
 ### Added

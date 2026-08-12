@@ -46,6 +46,18 @@ color-only state); responsive layout via the framework's adaptive primitives; st
 with explicit loading/empty/error states; restrained motion that respects reduced-motion
 settings.
 
+Four items from that checklist are the ones that pass visual review and still ship broken.
+Check them explicitly on every interactive surface:
+
+- **Keyboard operability.** Any control you write or touch must be reachable by Tab, activated
+  by Enter/Space, visibly focused, and skipped when disabled. A bare tap handler on a container
+  satisfies none of these. If you hand-roll a control, add a test that sends Tab then Enter —
+  this is behavioral, and cannot be verified by reading a diff or a screenshot.
+- **All four interaction states** — hover, focus, pressed, disabled — on anything that defines
+  any of them. Hover is a real requirement on web/desktop targets, and focus is not hover.
+- **Breakpoints read the slot's width, not the viewport's.**
+- **Text scaling.** No fixed extent wrapping text without growing it by the text scale factor.
+
 ## Process
 
 1. Read the relevant screens/components and the project's existing UI conventions.
@@ -61,9 +73,13 @@ settings.
 - The build passes with no new errors or warnings.
 - The change does exactly what was asked and is consistent with the app's existing visual
   language.
-- The `ui-craft` accessibility checklist was applied to every touched surface.
+- The `ui-craft` accessibility checklist was applied to every touched surface, including the
+  four explicitly listed under **Craft**.
 - Visual appearance itself is **not verified** — this agent cannot take screenshots. List that
   explicitly under "Not covered" in the closing Status section (`caveats-and-status` skill).
+  Say the same for anything else you could not check: rendered contrast ratios, behavior at
+  real text-scale settings, and hover/focus appearance on an actual browser are all outside what
+  a build check proves.
 
 ## Do not
 

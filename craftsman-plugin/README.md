@@ -51,6 +51,7 @@ Worked examples in [docs/use-cases.md](../docs/use-cases.md); contributions welc
 ```
 craftsman-plugin/
 ├── .claude-plugin/plugin.json    Plugin manifest
+├── .mcp.json                     Bundled MCP servers (see MCP servers)
 ├── agents/                       Fifteen agents (see Agents reference)
 ├── skills/                       Eight skills (see Skills reference)
 ├── commands/
@@ -72,6 +73,29 @@ craftsman-plugin/
     ├── pretooluse-edit-guard         File-pattern skill hints + drops the close-out session marker
     └── stop-closeout                 Nudges caveats-and-status once, after real edits
 ```
+
+## MCP servers
+
+The plugin bundles two MCP servers, both serving the `ui-designer` agent and the `ui-craft`
+skill — the parts of craftsman that touch a rendered surface rather than a source file.
+
+| Server | What it gives the UI workflow |
+|---|---|
+| **`figma`** ([remote](https://developers.figma.com/docs/figma-mcp-server/remote-server-installation/), `https://mcp.figma.com/mcp`) | Reads design context — variables, component structure, screenshots — so `ui-designer` implements against the real spec instead of inferring it from a description. |
+| **`chrome-devtools`** ([Google's official server](https://github.com/ChromeDevTools/chrome-devtools-mcp), `npx chrome-devtools-mcp@latest`) | Drives a real Chrome. This is what closes `ui-designer`'s biggest gap: a build check proves a UI compiles, not that it renders, and the four states `ui-craft` demands — hover, focus, pressed, disabled — only exist in a live browser. |
+
+Both are **opt-in at install time**: a plugin's MCP servers go through the same per-server
+approval as a project `.mcp.json`, so neither connects until you approve it. Decline both and
+every agent, skill and command still works — nothing in craftsman hard-depends on them.
+
+Two things worth knowing before you approve:
+
+- `figma` is a remote server and authenticates through your Figma account via OAuth. It sends
+  the file keys you ask about to Figma. There is also a local variant that talks to the desktop
+  app on `127.0.0.1:3845` if you would rather not use the hosted one.
+- `chrome-devtools` launches a Chrome instance and can navigate it. Give it a profile you are
+  comfortable automating; `--headless` and `--isolated` are worth adding to the args in
+  `.mcp.json` if you want it kept away from your logged-in session.
 
 ## Requirements
 
