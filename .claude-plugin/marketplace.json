@@ -1,14 +1,14 @@
 {
-  "name": "BrewSmith",
+  "name": "craftsman",
   "owner": {
     "name": "bufferbrew",
     "email": "bufferbrew@gmail.com"
   },
-  "description": "BrewSmith — Agent-discipline toolkit for Claude Code — minimal-diff coding, root-cause debugging, recurring-bug detection, and honest completion.",
+  "description": "Agent-discipline toolkit for Claude Code — minimal-diff coding, root-cause debugging, recurring-bug detection, and honest completion.",
   "plugins": [
     {
-      "name": "BrewSmith",
-      "source": "./BrewSmith-plugin",
+      "name": "craftsman",
+      "source": "./craftsman-plugin",
       "description": "Agent-discipline toolkit: portable agent set plus skills enforcing minimal-diff coding, root-cause debugging, recurring-bug detection via graphify, environment-quirk memory, and an ask-before-writing project scaffolder",
       "version": "0.11.0",
       "license": "MIT",
@@ -16,8 +16,8 @@
         "name": "bufferbrew",
         "email": "bufferbrew@gmail.com"
       },
-      "homepage": "https://github.com/bufferBrew/BrewSmith",
-      "repository": "https://github.com/bufferBrew/BrewSmith",
+      "homepage": "https://github.com/bufferBrew/craftsman",
+      "repository": "https://github.com/bufferBrew/craftsman",
       "keywords": [
         "agents",
         "skills",
