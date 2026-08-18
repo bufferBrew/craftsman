@@ -30,13 +30,19 @@ End the response with two separate sections — Status first, Caveats second:
 - Not covered: <what's explicitly out of scope or unverified>
 
 **Caveats**
-- Assumed: <anything taken on faith because it couldn't be checked here>
+
+| Caveat | Impact | How to resolve |
+|---|---|---|
+| <the assumption, gap, or thing taken on faith> | <what it actually means for the user> | <the specific check, command, or decision that settles it> |
 ```
 
-Keep them as two headed sections, not one merged bullet list — Status is what you can back with
-evidence from this session; Caveats is everything you couldn't. Omit a line entirely if it's
-genuinely empty (e.g. "Assumed: none" is fine to state plainly, but don't stretch to fill a line
-that has nothing real to say). If Caveats has nothing in it, it's fine to omit the whole section.
+Status stays a bullet list; **Caveats is always a table**, one row per caveat — never a bullet
+list, and never merged into Status. Status is what you can back with evidence from this session;
+Caveats is everything you couldn't. The table makes each gap scannable and forces the "so what" to
+be stated: a caveat with no real impact is usually not worth a row.
+
+Omit a Status line entirely if it's genuinely empty, and if there are no caveats at all, omit the
+whole Caveats section rather than emitting a table with a placeholder row.
 
 ## Rules
 
@@ -48,6 +54,9 @@ that has nothing real to say). If Caveats has nothing in it, it's fine to omit t
   option.
 - If verification wasn't possible (no test environment, no way to run the app), say so explicitly
   in "Not covered" rather than silently omitting it — an honest gap beats an implied guarantee.
+- Every Caveats row needs all three cells filled with something real. If "How to resolve" would be
+  empty, the caveat is either not actionable — say why in that cell — or it belongs in Status under
+  "Not covered" instead.
 - Run the verification and read its actual output *before* writing the "Verified" line — the
   claim comes after the evidence, never before. Report failures honestly, with the actual error
   output, not a softened summary. This format stands alone; it does not depend on any other
