@@ -42,13 +42,15 @@ change as a whole. Split unrelated work into separate commits.
 <body: wrap ~72 chars. Explain WHY the change is needed and what it
 affects — the diff already shows what changed. Reference issues/PRs.>
 
-Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>
+Co-Authored-By: Claude <model> <noreply@anthropic.com>
 ```
 
 - Subject in the imperative mood: "Add retry to uploader", not "Added" / "Adds" / "Fixing".
 - Body is optional for genuinely trivial commits, required when the *why* isn't obvious from the
   subject. Prefer prose that answers "why now / why this way" over restating the diff.
-- End the message with the `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>` trailer.
+- End the message with a `Co-Authored-By: Claude <model> <noreply@anthropic.com>` trailer naming
+  the model you are running as (e.g. `Claude Opus 5.5`). If the project or user says to omit the
+  trailer, or you are running on a non-Claude model, follow that instead.
 
 **Never commit:** secrets, credentials, `.env` files, generated/build artifacts, large binaries, or
 anything already ignored. If `git status` shows something that should be ignored, fix `.gitignore`
