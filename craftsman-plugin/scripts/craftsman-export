@@ -1,0 +1,180 @@
+#!/usr/bin/env bash
+# craftsman-export — install craftsman's agents and skills into another agent CLI.
+#
+# Supported target: codex (OpenAI Codex CLI).
+#   agents -> $CODEX_HOME/agents/craftsman_<name>.toml   (custom subagents)
+#   skills -> ~/.agents/skills/<name>/SKILL.md           (shared skills directory)
+# Each agent's `# tier:` comment picks its model and reasoning effort. Every path
+# written is recorded in a manifest so --uninstall removes exactly those files.
+#
+# Not ported: hooks (session reminder, guards) and slash commands — Codex has no
+# equivalent wiring for them.
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PLUGIN_ROOT="${CRAFTSMAN_PLUGIN_ROOT:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
+
+usage() {
+    cat <<'EOF'
+Usage: craftsman-export codex [options]
+
+Options:
+  --deep MODEL         Model for deep-tier agents      (default: gpt-6-astra)
+  --balanced MODEL     Model for balanced-tier agents  (default: gpt-6.1-sol)
+  --fast MODEL         Model for fast-tier agents      (default: gpt-6-luna)
+  --codex-home DIR     Codex config dir                (default: $CODEX_HOME or ~/.codex)
+  --skills-dir DIR     Skills dir                      (default: ~/.agents/skills)
+  --dry-run            Print what would be written, write nothing
+  --force              Overwrite files a previous export did not create
+  --uninstall          Remove every file the last export wrote
+EOF
+}
+
+die() { echo "craftsman-export: $*" >&2; exit 1; }
+
+valid_model() {
+    [[ "$1" =~ ^[A-Za-z0-9._:/@-]+$ ]]
+}
+
+# Prints the YAML frontmatter (without the --- fences) of a markdown file.
+frontmatter() {
+    awk 'NR==1 && $0=="---" {inside=1; next} inside && $0=="---" {exit} inside {print}' "$1"
+}
+
+# Prints everything after the closing frontmatter fence.
+body() {
+    awk 'done {print; next} NR==1 && $0=="---" {inside=1; next} inside && $0=="---" {done=1}' "$1"
+}
+
+toml_string() {
+    local s="$1"
+    s="${s//\\/\\\\}"
+    s="${s//\"/\\\"}"
+    printf '"%s"' "$s"
+}
+
+DEEP=gpt-6-astra BALANCED=gpt-6.1-sol FAST=gpt-6-luna
+CODEX_DIR="${CODEX_HOME:-${HOME}/.codex}"
+SKILLS_DIR="${HOME}/.agents/skills"
+DRY_RUN=no FORCE=no UNINSTALL=no
+
+target="${1:-}"
+case "$target" in
+    codex) shift ;;
+    -h|--help|help|"") usage; exit 0 ;;
+    *) die "unknown target '${target}' (supported: codex)" ;;
+esac
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --deep)       DEEP="${2:?--deep needs a model}"; shift 2 ;;
+        --balanced)   BALANCED="${2:?--balanced needs a model}"; shift 2 ;;
+        --fast)       FAST="${2:?--fast needs a model}"; shift 2 ;;
+        --codex-home) CODEX_DIR="${2:?--codex-home needs a directory}"; shift 2 ;;
+        --skills-dir) SKILLS_DIR="${2:?--skills-dir needs a directory}"; shift 2 ;;
+        --dry-run)    DRY_RUN=yes; shift ;;
+        --force)      FORCE=yes; shift ;;
+        --uninstall)  UNINSTALL=yes; shift ;;
+        *)            die "unknown option '$1'" ;;
+    esac
+done
+
+MANIFEST="${CODEX_DIR}/craftsman-export.manifest"
+
+if [ "$UNINSTALL" = yes ]; then
+    [ -f "$MANIFEST" ] || die "nothing to uninstall (no ${MANIFEST})"
+    while IFS= read -r path; do
+        [ -n "$path" ] || continue
+        if [ "$DRY_RUN" = yes ]; then echo "would remove ${path}"; else rm -rf "$path" && echo "removed ${path}"; fi
+    done < "$MANIFEST"
+    [ "$DRY_RUN" = yes ] || rm -f "$MANIFEST"
+    exit 0
+fi
+
+for m in "$DEEP" "$BALANCED" "$FAST"; do
+    valid_model "$m" || die "invalid model name '${m}'"
+done
+
+previous=""
+[ -f "$MANIFEST" ] && previous="$(cat "$MANIFEST")"
+
+# Refuse to clobber a file a previous export didn't write, unless --force.
+check_target() {
+    local path="$1"
+    [ -e "$path" ] || return 0
+    [ "$FORCE" = yes ] && return 0
+    printf '%s\n' "$previous" | grep -qxF "$path" && return 0
+    die "${path} already exists and wasn't written by craftsman-export (use --force to overwrite)"
+}
+
+written=()
+
+render_agent() {
+    local file="$1" fm name description tier model effort sandbox instructions
+    fm="$(frontmatter "$file")"
+    name="$(printf '%s\n' "$fm" | sed -n 's/^name: *//p' | head -1)"
+    description="$(printf '%s\n' "$fm" | sed -n 's/^description: *//p' | head -1)"
+    description="${description#\"}"
+    description="${description%\"}"
+    tier="$(printf '%s\n' "$fm" | sed -n 's/^model:.*# tier: *\([a-z]*\).*/\1/p')"
+    case "$tier" in
+        deep)     model="$DEEP" effort=high ;;
+        balanced) model="$BALANCED" effort=medium ;;
+        fast)     model="$FAST" effort=low ;;
+        *)        die "$(basename "$file"): no '# tier:' comment on its model line" ;;
+    esac
+    # Agents granted Edit/Write may change the workspace; everything else is read-only.
+    if printf '%s\n' "$fm" | grep -qE '^ *- *(Edit|Write)$'; then
+        sandbox=workspace-write
+    else
+        sandbox=read-only
+    fi
+    instructions="$(body "$file")"
+    case "$instructions" in *"'''"*) die "$(basename "$file"): body contains ''' and can't be a TOML literal string" ;; esac
+    printf '# Generated by craftsman-export from craftsman-plugin/agents/%s — edit the source, not this file.\n' "$(basename "$file")"
+    printf 'name = %s\n' "$(toml_string "craftsman_${name//-/_}")"
+    printf 'description = %s\n' "$(toml_string "$description")"
+    printf 'model = %s\n' "$(toml_string "$model")"
+    printf 'model_reasoning_effort = "%s"\n' "$effort"
+    printf 'sandbox_mode = "%s"\n' "$sandbox"
+    printf "developer_instructions = '''\n%s\n'''\n" "$instructions"
+}
+
+for file in "$PLUGIN_ROOT"/agents/*.md; do
+    name="$(basename "$file" .md)"
+    dest="${CODEX_DIR}/agents/craftsman_${name//-/_}.toml"
+    content="$(render_agent "$file")"
+    if [ "$DRY_RUN" = yes ]; then
+        echo "would write ${dest} ($(printf '%s\n' "$content" | sed -n 's/^model = //p'))"
+        continue
+    fi
+    check_target "$dest"
+    mkdir -p "$(dirname "$dest")"
+    printf '%s\n' "$content" > "$dest"
+    written+=("$dest")
+    echo "wrote ${dest}"
+done
+
+for dir in "$PLUGIN_ROOT"/skills/*/; do
+    name="$(basename "$dir")"
+    dest="${SKILLS_DIR}/${name}"
+    if [ "$DRY_RUN" = yes ]; then
+        echo "would copy skill ${name} -> ${dest}"
+        continue
+    fi
+    check_target "$dest"
+    rm -rf "$dest"
+    mkdir -p "$SKILLS_DIR"
+    cp -R "${dir%/}" "$dest"
+    written+=("$dest")
+    echo "copied skill ${name} -> ${dest}"
+done
+
+if [ "$DRY_RUN" = no ]; then
+    mkdir -p "$CODEX_DIR"
+    printf '%s\n' "${written[@]}" > "$MANIFEST"
+    echo
+    echo "Exported ${#written[@]} files for Codex (models: deep=${DEEP}, balanced=${BALANCED}, fast=${FAST})."
+    echo "The agent prompts still name Claude Code tools (Skill, Agent) in places; Codex reads them as guidance."
+fi

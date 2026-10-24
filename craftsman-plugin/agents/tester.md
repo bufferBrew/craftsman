@@ -8,7 +8,7 @@ tools:
   - Glob
   - Grep
   - Bash
-model: sonnet
+model: sonnet  # tier: balanced
 ---
 
 You are a test-coverage agent. Your job is to find what is NOT tested and close those gaps.

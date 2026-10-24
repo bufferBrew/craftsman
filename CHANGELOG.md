@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers track `.claude-plugin/plugin.json` (kept in sync with the root
 `marketplace.json`).
 
+## [0.12.0] - 2026-10-24
+
+### Added
+- `/craftsman:models` and `scripts/craftsman-models`: model profiles for the agents. Each agent's
+  `model:` line now carries its tier (`# tier: deep|balanced|fast`), and a profile maps the three
+  tiers to models. Presets: `claude` (the shipped opus / sonnet / haiku), `claude-fable` (deep tier
+  on Fable — opt-in only, never the default, since it costs more than Opus), `inherit`, `openai`,
+  `gemini`, and `custom` with per-tier overrides for anything else, including local dense models.
+  The choice is saved to `~/.claude/craftsman/models.conf`, and the session-start hook re-applies
+  it after a plugin update resets the agent files. `craftsman-models env` prints the
+  `ANTHROPIC_BASE_URL` / `ANTHROPIC_DEFAULT_*_MODEL` settings that non-Claude presets need behind
+  an Anthropic-compatible gateway.
+- `scripts/craftsman-export codex`: installs the agents as OpenAI Codex CLI custom agents (model
+  and reasoning effort from the tier, read-only sandbox unless the agent can edit) and copies the
+  skills to `~/.agents/skills/`. Writes a manifest so `--uninstall` removes exactly what it wrote.
+
+### Changed
+- `commit-craft` no longer hardcodes `Claude Opus 4.8` in its trailer; it names the model the
+  session is actually running as, and defers to a project or user rule to omit the trailer.
+- CI checks every agent's model line for a tier comment and syntax-checks the new scripts.
+
 ## [0.11.0] - 2026-08-12
 
 ### Added

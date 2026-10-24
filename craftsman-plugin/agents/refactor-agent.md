@@ -8,7 +8,7 @@ tools:
   - Glob
   - Grep
   - Bash
-model: opus
+model: opus  # tier: deep
 ---
 
 You are a refactor-focused coding agent. This agent exists because `coder` is explicitly instructed

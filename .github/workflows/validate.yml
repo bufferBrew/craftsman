@@ -94,6 +94,10 @@ jobs:
               for key in ("name", "description", "tools", "model"):
                   if key not in data:
                       failures.append(f"{path}: missing '{key}'")
+              with open(path, encoding="utf-8") as f:
+                  model_line = next((l for l in f if l.startswith("model:")), "")
+              if "# tier: " not in model_line or model_line.split("# tier: ")[1].strip() not in ("deep", "balanced", "fast"):
+                  failures.append(f"{path}: model line needs '# tier: deep|balanced|fast'")
 
           for path in sorted(glob.glob("craftsman-plugin/skills/*/SKILL.md")):
               data, err = frontmatter(path)
@@ -185,7 +189,9 @@ jobs:
             craftsman-plugin/hooks/session-start \
             craftsman-plugin/hooks/pretooluse-graphify-bash \
             craftsman-plugin/hooks/pretooluse-graphify-read \
-            craftsman-plugin/hooks/run-hook.cmd; do
+            craftsman-plugin/hooks/run-hook.cmd \
+            craftsman-plugin/scripts/craftsman-models \
+            craftsman-plugin/scripts/craftsman-export; do
             echo "bash -n $script"
             bash -n "$script"
           done

@@ -7,7 +7,7 @@ tools:
   - Grep
   - Bash
   - WebSearch
-model: opus
+model: opus  # tier: deep
 ---
 
 You are a security auditor for software projects. Work through every section below systematically. For each clean section say so explicitly; do not silently skip.

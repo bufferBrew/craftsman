@@ -1,0 +1,263 @@
+#!/usr/bin/env bash
+# craftsman-models — choose which models the craftsman agents run on.
+#
+# Every agent's frontmatter carries a tier comment: `model: opus  # tier: deep`.
+# A profile maps the three tiers (deep / balanced / fast) to model names, and
+# this script rewrites each agent's `model:` value to match. The choice is saved
+# to $CRAFTSMAN_CONFIG_DIR/models.conf so it survives plugin updates — the
+# session-start hook re-applies it when an update resets the agent files.
+#
+# Bash 3.2-compatible (stock macOS): no associative arrays.
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PLUGIN_ROOT="${CRAFTSMAN_PLUGIN_ROOT:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
+AGENTS_DIR="${PLUGIN_ROOT}/agents"
+CONFIG_DIR="${CRAFTSMAN_CONFIG_DIR:-${HOME}/.claude/craftsman}"
+CONFIG_FILE="${CONFIG_DIR}/models.conf"
+
+usage() {
+    cat <<'EOF'
+Usage: craftsman-models <command> [options]
+
+Commands:
+  list                      Show the built-in presets
+  show                      Show the saved profile and each agent's current model
+  set <preset> [options]    Save a profile and apply it to the agents
+  apply [--quiet]           Re-apply the saved profile (used by the session-start hook)
+  reset                     Back to the shipped Claude profile (opus / sonnet / haiku)
+  env                       Print the settings.json "env" block a gateway preset needs
+
+Options for `set`:
+  --deep MODEL              Override the deep tier     (orchestrator, coder, debugger, ...)
+  --balanced MODEL          Override the balanced tier (tester, docs-writer, ...)
+  --fast MODEL              Override the fast tier     (planner, reviewer, researcher)
+  --allow-git               Allow rewriting agents inside a git checkout (plugin development)
+
+MODEL is anything Claude Code's `model` field accepts: an alias (opus, sonnet, haiku, fable),
+`inherit`, or a full model ID (claude-opus-5-5, or a gateway's model name such as gpt-6-astra).
+Agent changes take effect in the next Claude Code session.
+EOF
+}
+
+# preset -> "deep balanced fast gateway"
+preset_values() {
+    case "$1" in
+        claude)       echo "opus sonnet haiku no" ;;
+        claude-fable) echo "fable sonnet haiku no" ;;
+        inherit)      echo "inherit inherit inherit no" ;;
+        openai)       echo "gpt-6-astra gpt-6.1-sol gpt-6-luna yes" ;;
+        gemini)       echo "gemini-3.1-pro-preview gemini-3.8-flash gemini-3.5-flash-lite yes" ;;
+        custom)       echo "opus sonnet haiku no" ;;
+        *)            return 1 ;;
+    esac
+}
+
+cmd_list() {
+    cat <<'EOF'
+Preset         deep                     balanced            fast                   Needs
+claude         opus                     sonnet              haiku                  - (default)
+claude-fable   fable                    sonnet              haiku                  Fable access (opt-in)
+inherit        inherit                  inherit             inherit                - (every agent uses your /model choice)
+openai         gpt-6-astra              gpt-6.1-sol         gpt-6-luna             Anthropic-compatible gateway
+gemini         gemini-3.1-pro-preview   gemini-3.8-flash    gemini-3.5-flash-lite  Anthropic-compatible gateway
+custom         --deep                   --balanced          --fast                 whatever the models need
+
+Any preset accepts --deep / --balanced / --fast overrides, e.g. a local dense model:
+  craftsman-models set custom --deep qwen3:32b --balanced qwen3:32b --fast qwen3:8b
+EOF
+}
+
+die() { echo "craftsman-models: $*" >&2; exit 1; }
+
+valid_model() {
+    [[ "$1" =~ ^[A-Za-z0-9._:/@-]+(\[[A-Za-z0-9]+\])?$ ]]
+}
+
+in_git_checkout() {
+    git -C "$PLUGIN_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1
+}
+
+# Reads models.conf as key=value lines; never sources it.
+read_config() {
+    PRESET="" DEEP="" BALANCED="" FAST=""
+    [ -f "$CONFIG_FILE" ] || return 1
+    local key value
+    while IFS='=' read -r key value; do
+        case "$key" in
+            preset)   PRESET="$value" ;;
+            deep)     DEEP="$value" ;;
+            balanced) BALANCED="$value" ;;
+            fast)     FAST="$value" ;;
+        esac
+    done < "$CONFIG_FILE"
+    for value in "$DEEP" "$BALANCED" "$FAST"; do
+        valid_model "$value" || die "invalid model '${value}' in ${CONFIG_FILE}"
+    done
+}
+
+tier_model() {
+    case "$1" in
+        deep)     echo "$DEEP" ;;
+        balanced) echo "$BALANCED" ;;
+        fast)     echo "$FAST" ;;
+        *)        return 1 ;;
+    esac
+}
+
+# Rewrites agent `model:` lines to the loaded profile; prints one line per change.
+apply_profile() {
+    local file line tier want current
+    for file in "$AGENTS_DIR"/*.md; do
+        line="$(grep -m1 '^model:' "$file" || true)"
+        tier="$(printf '%s' "$line" | sed -n 's/.*# tier: *\([a-z]*\).*/\1/p')"
+        [ -n "$tier" ] || { echo "skip $(basename "$file" .md): no '# tier:' comment" >&2; continue; }
+        want="$(tier_model "$tier")" || { echo "skip $(basename "$file" .md): unknown tier '$tier'" >&2; continue; }
+        current="$(printf '%s' "$line" | sed -n 's/^model: *\([^ #]*\).*/\1/p')"
+        [ "$current" = "$want" ] && continue
+        sed -i.bak "s|^model:.*# tier: *${tier}.*\$|model: ${want}  # tier: ${tier}|" "$file"
+        rm -f "${file}.bak"
+        echo "$(basename "$file" .md): ${current} -> ${want}"
+    done
+}
+
+cmd_show() {
+    if read_config; then
+        echo "Saved profile: ${PRESET} (deep=${DEEP}, balanced=${BALANCED}, fast=${FAST})"
+    else
+        echo "Saved profile: none (shipped defaults)"
+    fi
+    echo
+    local file
+    for file in "$AGENTS_DIR"/*.md; do
+        printf '  %-22s %s\n' "$(basename "$file" .md)" "$(grep -m1 '^model:' "$file" | sed 's/^model: *//')"
+    done
+    local var
+    for var in CLAUDE_CODE_SUBAGENT_MODEL ANTHROPIC_BASE_URL ANTHROPIC_DEFAULT_FABLE_MODEL \
+               ANTHROPIC_DEFAULT_OPUS_MODEL ANTHROPIC_DEFAULT_SONNET_MODEL ANTHROPIC_DEFAULT_HAIKU_MODEL; do
+        [ -n "${!var:-}" ] && echo "  env ${var}=${!var}"
+    done
+    if [ -n "${CLAUDE_CODE_SUBAGENT_MODEL:-}" ] && [ -n "${CLAUDE_CODE_SUBAGENT_MODEL_FORCE:-}" ]; then
+        echo "  note: CLAUDE_CODE_SUBAGENT_MODEL_FORCE is set, so every agent ignores its model field"
+    fi
+    return 0
+}
+
+cmd_set() {
+    local preset="${1:-}"
+    [ -n "$preset" ] || die "set needs a preset (run 'craftsman-models list')"
+    shift
+    local values
+    values="$(preset_values "$preset")" || die "unknown preset '${preset}' (run 'craftsman-models list')"
+    # shellcheck disable=SC2086
+    set -- $values "$@"
+    DEEP="$1" BALANCED="$2" FAST="$3" GATEWAY="$4"
+    shift 4
+    local allow_git=no
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --deep)      DEEP="${2:?--deep needs a model}"; shift 2 ;;
+            --balanced)  BALANCED="${2:?--balanced needs a model}"; shift 2 ;;
+            --fast)      FAST="${2:?--fast needs a model}"; shift 2 ;;
+            --allow-git) allow_git=yes; shift ;;
+            *)           die "unknown option '$1'" ;;
+        esac
+    done
+    local m
+    for m in "$DEEP" "$BALANCED" "$FAST"; do
+        valid_model "$m" || die "invalid model name '${m}'"
+    done
+    if in_git_checkout && [ "$allow_git" = no ]; then
+        die "${PLUGIN_ROOT} is a git checkout; rewriting its agents would dirty the repo. Pass --allow-git to do it anyway."
+    fi
+    mkdir -p "$CONFIG_DIR"
+    printf 'preset=%s\ndeep=%s\nbalanced=%s\nfast=%s\n' "$preset" "$DEEP" "$BALANCED" "$FAST" > "$CONFIG_FILE"
+    PRESET="$preset"
+    echo "Saved ${PRESET} to ${CONFIG_FILE}"
+    local changes
+    changes="$(apply_profile)"
+    if [ -n "$changes" ]; then
+        printf '%s\n' "$changes"
+        echo "Restart Claude Code (or start a new session) for the agents to pick this up."
+    else
+        echo "Agents already match."
+    fi
+    if [ "$GATEWAY" = yes ]; then
+        echo
+        echo "These models aren't Anthropic's: Claude Code needs an Anthropic-compatible gateway in front"
+        echo "of them. Run 'craftsman-models env' for the settings to add."
+    fi
+}
+
+cmd_apply() {
+    local quiet=no
+    [ "${1:-}" = "--quiet" ] && quiet=yes
+    if ! read_config; then
+        [ "$quiet" = yes ] && return 0
+        die "no saved profile at ${CONFIG_FILE}"
+    fi
+    if in_git_checkout; then
+        [ "$quiet" = yes ] && return 0
+        die "${PLUGIN_ROOT} is a git checkout; use 'set ${PRESET} --allow-git' to rewrite it deliberately"
+    fi
+    local changes
+    changes="$(apply_profile)"
+    if [ -n "$changes" ]; then
+        echo "Re-applied craftsman model profile '${PRESET}' (${DEEP}/${BALANCED}/${FAST}); it takes effect next session."
+    elif [ "$quiet" = no ]; then
+        echo "Agents already match profile '${PRESET}'."
+    fi
+}
+
+cmd_reset() {
+    if in_git_checkout && [ "${1:-}" != "--allow-git" ]; then
+        die "${PLUGIN_ROOT} is a git checkout; use 'git checkout -- agents' there, or pass --allow-git"
+    fi
+    DEEP=opus BALANCED=sonnet FAST=haiku
+    apply_profile
+    rm -f "$CONFIG_FILE"
+    echo "Back to the shipped profile (opus / sonnet / haiku). Takes effect next session."
+}
+
+cmd_env() {
+    read_config || die "no saved profile; run 'craftsman-models set <preset>' first"
+    local gateway
+    gateway="$(preset_values "$PRESET" | awk '{print $4}')"
+    case "$DEEP$BALANCED$FAST" in
+        *gpt-*|*gemini-*|*:*) gateway=yes ;;
+    esac
+    if [ "$gateway" != yes ]; then
+        echo "Profile '${PRESET}' runs on Anthropic models; no env settings are needed."
+        return 0
+    fi
+    cat <<EOF
+Add this to the "env" block of ~/.claude/settings.json so the main session and Claude Code's
+background tasks route through the same gateway as the agents:
+
+  "ANTHROPIC_BASE_URL": "<your gateway URL, e.g. http://localhost:4000 for LiteLLM>",
+  "ANTHROPIC_DEFAULT_FABLE_MODEL": "${DEEP}",
+  "ANTHROPIC_DEFAULT_OPUS_MODEL": "${DEEP}",
+  "ANTHROPIC_DEFAULT_SONNET_MODEL": "${BALANCED}",
+  "ANTHROPIC_DEFAULT_HAIKU_MODEL": "${FAST}"
+
+Keep the gateway key out of settings.json: export ANTHROPIC_AUTH_TOKEN in your shell profile.
+EOF
+}
+
+main() {
+    local cmd="${1:-}"
+    [ $# -gt 0 ] && shift
+    case "$cmd" in
+        list)            cmd_list ;;
+        show)            cmd_show ;;
+        set)             cmd_set "$@" ;;
+        apply)           cmd_apply "$@" ;;
+        reset)           cmd_reset "$@" ;;
+        env)             cmd_env ;;
+        -h|--help|help|"") usage ;;
+        *)               usage >&2; exit 1 ;;
+    esac
+}
+
+main "$@"

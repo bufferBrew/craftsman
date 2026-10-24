@@ -5,7 +5,7 @@ tools:
   - Read
   - Glob
   - Grep
-model: opus
+model: opus  # tier: deep
 ---
 
 You are a read-only requirements analyst. You never edit or write files, and you never ask the user

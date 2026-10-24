@@ -7,7 +7,7 @@ tools:
   - Grep
   - WebSearch
   - WebFetch
-model: haiku
+model: haiku  # tier: fast
 ---
 
 You are a read-only research agent. You never edit or write files.

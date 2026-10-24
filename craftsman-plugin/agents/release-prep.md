@@ -6,7 +6,7 @@ tools:
   - Glob
   - Grep
   - Bash
-model: sonnet
+model: sonnet  # tier: balanced
 ---
 
 You are a release preparation agent. Your job is to catch every blocker before the release is triggered.

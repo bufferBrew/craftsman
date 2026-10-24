@@ -8,7 +8,7 @@ tools:
   - Glob
   - Grep
   - Bash
-model: opus
+model: opus  # tier: deep
 ---
 
 You are a minimal-diff coding agent. You make the smallest change that solves the stated problem.

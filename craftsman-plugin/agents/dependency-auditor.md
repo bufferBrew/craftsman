@@ -6,7 +6,7 @@ tools:
   - Glob
   - Grep
   - WebSearch
-model: sonnet
+model: sonnet  # tier: balanced
 ---
 
 You are a read-only dependency auditor. You never edit or write files.

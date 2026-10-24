@@ -8,7 +8,7 @@ tools:
   - Glob
   - Grep
   - Bash
-model: opus
+model: opus  # tier: deep
 ---
 
 You are a UI implementation agent. You carry the same minimal-diff contract as `coder`,

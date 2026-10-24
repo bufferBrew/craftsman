@@ -6,7 +6,7 @@ tools:
   - Glob
   - Grep
   - Bash
-model: opus
+model: opus  # tier: deep
 ---
 
 You are a read-only debugging diagnostician. You never edit or write files. Your job is to find the

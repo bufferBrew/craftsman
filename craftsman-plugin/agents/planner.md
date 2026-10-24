@@ -5,7 +5,7 @@ tools:
   - Read
   - Glob
   - Grep
-model: haiku
+model: haiku  # tier: fast
 ---
 
 You are a read-only planning agent. You never write, edit, or delete files.

@@ -13,7 +13,8 @@
 
 A Claude Code plugin that makes engineering discipline the default: the smallest correct change,
 no fix without a root cause, and an honest report of what was actually verified. Fifteen agents, eight
-skills, seven slash commands, and a cross-platform hook system.
+skills, eight slash commands, and a cross-platform hook system. Agents run on Claude by default,
+with opt-in Fable, other providers behind a gateway, or an export to Codex CLI (see *Models and providers*).
 
 ## Why craftsman
 
@@ -61,7 +62,11 @@ craftsman-plugin/
 │   ├── quick.md                  /craftsman:quick — small-change fast path
 │   ├── doctor.md                 /craftsman:doctor — install health check (--fix to remediate)
 │   ├── review.md                 /craftsman:review — direct reviewer routing
-│   └── security.md               /craftsman:security — direct security audit routing
+│   ├── security.md               /craftsman:security — direct security audit routing
+│   └── models.md                 /craftsman:models — model profiles, providers, Codex export
+├── scripts/
+│   ├── craftsman-models          Applies a model profile to the agents
+│   └── craftsman-export          Exports agents + skills to Codex CLI
 └── hooks/
     ├── hooks.json                    Hook wiring (SessionStart, UserPromptSubmit, PreToolUse, Stop)
     ├── run-hook.cmd                  Polyglot dispatcher (Windows CMD + Unix bash)
@@ -136,7 +141,7 @@ Or from inside a session: `/plugin marketplace add bufferBrew/craftsman` then
 `/plugin install craftsman@craftsman`.
 
 Restart Claude Code (or start a new session) after installing. Verify with `claude plugin list`
-and inspect the loaded components with `claude plugin details craftsman` — it should report 15 agents. Claude Code counts commands as skills in the plugin details output: 8 skill files + 7 command files = 15 under the skills heading, and 4 hook events
+and inspect the loaded components with `claude plugin details craftsman` — it should report 15 agents. Claude Code counts commands as skills in the plugin details output: 8 skill files + 8 command files = 16 under the skills heading, and 4 hook events
 (SessionStart, UserPromptSubmit, PreToolUse, Stop). Only SessionStart has an always-on cost (roughly 1.2k tokens per session); the other three are event-driven and inject a short nudge only when a real signal matches — no idle cost.
 
 ### Option C — install from a local marketplace checkout
@@ -249,6 +254,60 @@ the discipline:
 
 You don't have to remember the command: `/craftsman:orchestrate` also recognizes small-change wording
 ("quick fix", "just", "trivial", "one-liner") and routes to the same path itself.
+
+## Models and providers
+
+Each agent belongs to a tier, marked on its `model:` line (`model: opus  # tier: deep`):
+
+| Tier | Agents | Shipped |
+|---|---|---|
+| deep | orchestrator, coder, debugger, refactor-agent, security, requirements-analyst, ui-designer | `opus` |
+| balanced | tester, docs-writer, release-prep, dependency-auditor, cicd-debugger | `sonnet` |
+| fast | planner, reviewer, researcher | `haiku` |
+
+The shipped aliases always resolve to the newest Claude model of each family, so the defaults never
+need a version bump. To run the agents on something else, use `/craftsman:models`, or the script
+behind it directly:
+
+```bash
+scripts/craftsman-models list                 # presets
+scripts/craftsman-models set claude-fable     # opt-in: deep tier on Fable
+scripts/craftsman-models set gemini           # Gemini Pro / Flash / Flash-Lite via a gateway
+scripts/craftsman-models set custom --deep qwen3:32b --balanced qwen3:32b --fast qwen3:8b
+scripts/craftsman-models reset                # back to opus / sonnet / haiku
+```
+
+| Preset | deep / balanced / fast | Needs |
+|---|---|---|
+| `claude` (default) | opus / sonnet / haiku | — |
+| `claude-fable` | fable / sonnet / haiku | Fable access; costs more than Opus, so it's never the default |
+| `inherit` | inherit ×3 | — every agent uses the session's `/model` |
+| `openai` | gpt-6-astra / gpt-6.1-sol / gpt-6-luna | an Anthropic-compatible gateway |
+| `gemini` | gemini-3.1-pro-preview / gemini-3.8-flash / gemini-3.5-flash-lite | an Anthropic-compatible gateway |
+| `custom` | your `--deep` / `--balanced` / `--fast` | whatever those models need |
+
+`set` rewrites the agent files in the installed plugin copy and saves the choice to
+`~/.claude/craftsman/models.conf`. A plugin update resets the agent files, so the session-start hook
+re-applies the saved profile; the agents pick it up from the next session. The script refuses to
+rewrite a git checkout (a `--plugin-dir` working copy) unless you pass `--allow-git`.
+
+**Other providers.** Claude Code speaks the Anthropic API, so non-Claude models need a gateway that
+translates: LiteLLM, OpenRouter, a Codex router, or a local server such as Ollama. Point
+`ANTHROPIC_BASE_URL` at it, export `ANTHROPIC_AUTH_TOKEN` in your shell, and map the aliases with
+`ANTHROPIC_DEFAULT_{FABLE,OPUS,SONNET,HAIKU}_MODEL` so the main session and background tasks follow
+the agents. `craftsman-models env` prints that block for the saved profile. Preset model names are
+a snapshot (October 2026); pass newer ones with the tier flags.
+
+**Codex CLI.** `scripts/craftsman-export codex` installs the agents as Codex custom agents
+(`~/.codex/agents/craftsman_<name>.toml`, model and reasoning effort from the tier, a read-only
+sandbox unless the agent can edit files) and copies the skills to `~/.agents/skills/`. Hooks and
+slash commands don't carry over, and the prompts still mention Claude Code tools such as Skill and
+Agent. `--dry-run` previews; `--uninstall` removes exactly what the export wrote.
+
+### `/craftsman:models [list | show | set <preset> | reset | env | export codex]`
+
+Picks which models the agents run on and, for gateway presets, which settings Claude Code needs.
+Confirms before rewriting anything. See *Models and providers* above.
 
 ## Agents reference
 

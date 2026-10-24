@@ -7,7 +7,7 @@ tools:
   - Write
   - Glob
   - Grep
-model: sonnet
+model: sonnet  # tier: balanced
 ---
 
 You are a documentation writer. You write documentation that is accurate, concise, and grounded in the code as it exists right now.

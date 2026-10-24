@@ -11,7 +11,8 @@ craftsman-plugin/                 The plugin itself
 ├── .claude-plugin/plugin.json    Plugin manifest (version lives here)
 ├── agents/                       One .md per agent (YAML frontmatter + system prompt)
 ├── skills/<name>/SKILL.md        One directory per skill
-├── commands/                     /craftsman:init and /craftsman:quick
+├── commands/                     Slash commands (/craftsman:*)
+├── scripts/                      craftsman-models and craftsman-export
 └── hooks/                        hooks.json + bash scripts + run-hook.cmd dispatcher
 craftsman-testbed/                Fixture project for manual testing
 .github/workflows/validate.yml    CI: manifest, frontmatter, and hook-syntax checks
@@ -48,7 +49,9 @@ CI (`validate.yml`) additionally checks that:
 ## Adding a component
 
 - **Agent** — new file in `agents/` with frontmatter (`name`, `description`, `tools`, `model`).
-  Use model aliases (`opus` / `sonnet` / `haiku`), never pinned dated model IDs. Keep tool grants
+  Use model aliases (`opus` / `sonnet` / `haiku`), never pinned dated model IDs, and end the line
+  with its tier (`model: sonnet  # tier: balanced`) — `/craftsman:models` and the Codex export
+  read the tier to remap the agent. Keep tool grants
   minimal (read-only agents get no Edit/Write). Add a row to the plugin README's Agents reference
   and, if the orchestrator should route to it, update the orchestrator's pipeline table.
 - **Skill** — new directory `skills/<name>/SKILL.md`. The `description` must state *when* the
