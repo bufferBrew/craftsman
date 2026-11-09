@@ -1,133 +1,101 @@
 ---
 name: ui-craft
-description: Use before writing or changing any UI — screens, components, styling, layout, theming — in any framework (Compose, Flutter, React, SwiftUI, web). Framework-adaptive modern-UI craft — design-token discipline, accessibility, keyboard operability and interaction states, responsive layout, text scaling, state-driven UI, motion restraint.
+description: Use when building, changing, or reviewing UI. Guides visual direction, design-system reuse, accessibility, responsive layout, interaction states, and UI performance for the project's framework.
 ---
 
 # UI Craft
 
-## Overview
+## Match the work to the request
 
-UI code is judged by users, not compilers. A build that passes says nothing about contrast,
-touch targets, or how a screen behaves on a narrow window. These rules hold across frameworks —
-what changes per framework is only the primitive used to satisfy them.
+- **Targeted fix or polish.** Match the surrounding UI and verify the behavior the change touches.
+- **New surface or redesign.** Establish a visual direction before implementation, then review the rendered result against it.
+- **Review.** Inspect the requested surface and its shared components. Report findings with the affected user interaction, severity, and file and line where available. Separate issues reproduced in the running UI from findings based on code inspection.
 
-**Core principle:** the design system decides; the code obeys.
+## Start with the design system
 
-## Design system first
+Read the brief and any supplied references. Check `design-system/MASTER.md` and page overrides for
+design intent, the active theme for token values, and nearby components for implementation patterns.
+Reuse existing controls and tokens for type, color, spacing, and shape. If sources conflict,
+resolve the choice using the brief and current product conventions.
 
-Before writing any UI, locate the project's token source. Check in this priority order and use
-the first one that exists:
+For a new surface, start with the audience, primary task, and real content. Choose a focal point
+and make the typography, density, palette, and composition support it. Use structural devices such
+as cards, dividers, and numbering where they clarify the content. Before building, check whether
+the same treatment would fit an unrelated product unchanged. If so, use the subject matter or the
+product's interaction to make the design more specific. Follow the brief when it specifies a look.
 
-1. **`design-system/MASTER.md`** (plus any page-specific override files) — produced by
-   design-intelligence skills such as ui-ux-pro-max. If present, it is the authoritative
-   specification: colors, typography, spacing, and anti-patterns come from it, not from taste.
-2. **The framework's theme layer** — Compose `MaterialTheme`/`Theme.kt`, Flutter `ThemeData`,
-   Tailwind config, CSS custom properties, SwiftUI environment values.
-3. **Existing component conventions** — how the project's current screens and components already
-   do it. Reuse those components before writing new ones.
+For greenfield work without a theme, define the few reusable tokens the surface needs in the
+framework's existing styling layer. For an existing product without formal tokens, use nearby
+conventions. For new visual directions and substantial redesigns, use the installed
+`frontend-design` skill if available. See [Anthropic's Frontend Design guide](https://github.com/anthropics/skills/blob/main/skills/frontend-design/SKILL.md).
 
-Never hardcode a color, spacing, font size, or radius that a token already defines. If no design
-system exists at all, **ask** (or suggest generating one with a design-intelligence skill) rather
-than inventing ad-hoc styles — the `smallest-change-first` ladder applies to visual decisions too.
+## Build for the platform
 
-## The craft checklist
+### Semantics and interaction
 
-Apply to every surface you touch. Framework primitives are named where they differ.
+- Start with native controls or the project's accessible primitives. Use a button for actions
+  and a link for navigation on the web. Preserve accessible names, roles, values, and states.
+  Label inputs and icon-only controls. Expose meaningful imagery and hide purely decorative
+  elements from assistive technology.
+- On platforms with keyboard navigation, check reachability, logical focus order, visible focus,
+  and activation with the keys appropriate to each control. On the web, buttons support Enter
+  and Space, links use Enter, and composite widgets may use arrow keys. Check dialog focus
+  entry and restoration when applicable. Use [WAI-ARIA patterns](https://www.w3.org/WAI/ARIA/apg/patterns/)
+  for custom web widgets.
+- Keep hover, keyboard focus, pressed, and disabled states distinguishable where the input
+  supports them. Check hover feedback beyond the cursor on ghost and filled variants.
+  Make the focus indicator visible against adjacent colors without changing layout, and
+  check that sticky UI does not obscure it.
+  Use native disabled behavior by default. If a disabled control intentionally remains
+  focusable, expose its state and suppress activation.
+- Check text and control contrast. Aim for at least 4.5:1 for body text and pair color
+  cues with text, icons, or shape. Aim for touch targets of at least 48 dp on Android and
+  44 pt on iOS. On the web, check the
+  [WCAG 2.2 target size criterion](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html),
+  including its spacing and other exceptions. Prefer larger targets for primary touch controls.
 
-### Spacing, typography, color
-- Stick to a consistent spacing scale (typically 4/8pt multiples) — no arbitrary one-off values.
-- Type sizes come from the theme's type ramp, not inline numbers.
-- No one-off hex values — every color resolves to a token.
+### Layout, state, and motion
 
-### Accessibility
-- Body-text contrast ≥ 4.5:1 against its background.
-- Touch/click targets ≥ 48dp (Android) / 44pt (iOS) / 24px (CSS, WCAG 2.2).
-- Every interactive or informative element has a semantic label: `contentDescription` (Compose),
-  `Semantics` (Flutter), `aria-*` (web), `accessibilityLabel` (SwiftUI).
-- Keyboard/focus order follows visual order.
-- Never convey state by color alone — pair it with text, an icon, or a shape change.
+- Size reusable layouts from their container. A wide window can still contain a narrow panel
+  or split view. Use local constraints such as Flutter's `LayoutBuilder`, Compose's
+  `BoxWithConstraints`, or CSS container queries. Use viewport breakpoints for page-level changes.
+- Let text-bearing containers grow and wrap. Check narrow widths, long labels, and 200% zoom
+  or the platform's larger text settings. Fixed row heights and aspect ratios around text
+  deserve particular scrutiny.
+- Keep a single source of truth for UI state. Cover loading, empty, error, and success
+  states where they occur. If the layout is known, use a shape-matched skeleton or reserve
+  space for content to limit layout shifts. Separate transport problems from server responses.
+  Use offline copy when connectivity is known to
+  be unavailable, and give actionable recovery guidance for validation or permission errors.
+- Use motion to clarify what changed and respect the platform's reduced-motion setting.
+  Keep essential feedback available with motion reduced. Prefer the framework's established
+  animation primitives and keep interactions responsive during transitions.
 
-### Every control is keyboard-operable
+## Use specialist guidance selectively
 
-Focus *order* is the easy half. The half that actually breaks is whether a control is a control
-at all. A tap handler bolted onto a plain container — `GestureDetector` (Flutter),
-`Modifier.pointerInput` (Compose), `onClick` on a `<div>` (web) — behaves correctly under a
-mouse and is **completely invisible to keyboard traversal**: Tab never lands on it, Enter never
-fires it. Ship that pattern in your shared button component and the whole app becomes unusable
-without a pointer. It is a WCAG 2.1.1 failure, and no amount of visual review catches it,
-because it looks perfect in a screenshot.
+Prefer the matching installed skill when available. Otherwise consult the linked upstream guide
+for the relevant topic. The core workflow above works independently of these references.
 
-For every interactive element, verify all four:
+- **Web UI or accessibility review.** Use [Vercel's Web Design Guidelines skill](https://github.com/vercel-labs/agent-skills/blob/main/skills/web-design-guidelines/SKILL.md)
+  for scoped reviews. In the affected UI, check semantics, keyboard flow, form labels and
+  recovery, zoom and overflow, reduced motion, and loading feedback as applicable. Consult the
+  current checklist for a full review. Report actual findings with file and line references.
+- **React DOM or Next.js performance.** Use [Vercel's React Best Practices](https://github.com/vercel-labs/agent-skills/blob/main/skills/react-best-practices/SKILL.md)
+  when work affects data fetching, bundles, rendering, or client/server boundaries. Start
+  by looking for serial waits on independent data and unnecessary client code. Check render churn
+  where the affected interaction warrants it. Use Next.js-specific rules only for the
+  router and version in use.
+- **React Native or Expo performance.** Use [Vercel's React Native skill](https://github.com/vercel-labs/agent-skills/blob/main/skills/react-native-skills/SKILL.md)
+  for native targets. Focus on the affected behavior, such as list virtualization, row cost,
+  scroll and animation responsiveness, image sizing, or safe-area handling. Start with
+  the project's existing libraries and profile performance on a representative device when possible.
 
-1. **Reachable** — Tab lands on it. Use the framework's focusable primitive:
-   `FocusableActionDetector`/`InkWell` (Flutter), `Modifier.clickable` or a real `Button`
-   (Compose), a real `<button>`/`<a>` (web), `Button` (SwiftUI).
-2. **Operable** — Enter and Space activate it, firing the same callback a tap does.
-3. **Visibly focused** — a focus indicator appears, and it is *not* the same treatment as hover.
-   Draw it as an overlay at a small outset so toggling it cannot reflow the control, and pick a
-   color that stays visible on a filled accent surface — a brand-colored ring on a
-   brand-colored button is invisible.
-4. **Correctly excluded when disabled** — a disabled control is skipped by traversal entirely,
-   not merely dimmed.
+## Verify the result
 
-Prefer the framework's native control. Hand-roll only when the design genuinely cannot be
-expressed through it, and then owe all four properties explicitly. Assert this in a test: focus
-and activation are behavioral properties, so a widget/DOM test that sends Tab then Enter is the
-only thing that keeps them from silently regressing.
-
-### The four interaction states are one set
-
-`hover`, `focus`, `pressed`, `disabled`. Any interactive component that defines one owes all
-four. Hover and focus are distinct states with distinct triggers — a control focused by a click
-should not paint a focus ring, and a hover treatment is not a substitute for a focus one.
-
-Hover is not optional on web/desktop targets: a cursor change alone is not feedback. Transparent
-variants (ghost/text buttons) have no fill to darken, so they need their own hover treatment
-rather than inheriting the filled variant's.
-
-### Responsive and adaptive layout
-- No hardcoded screen dimensions.
-- Use the framework's adaptive primitive: `WindowSizeClass` (Compose), `LayoutBuilder`/
-  `MediaQuery` (Flutter), CSS grid/flexbox with breakpoints (web), size classes (SwiftUI).
-
-**Measure the slot, not the window.** Breakpoint logic must be fed the width of the container
-the component actually occupies, never the viewport's. The two diverge as soon as anything caps
-the content measure, adds a rail, or opens a split pane — a 1440px window whose content column
-is capped at 1080 picks the wrong column count if it asks the viewport. Mixing the two is worse
-than either alone: sizing cells from the local constraint while counting columns from the
-viewport is exactly what produces overflow and dead columns. In Flutter that means
-`LayoutBuilder`'s `constraints.maxWidth`, not `MediaQuery.sizeOf`; on web, container queries or
-the element's own width, not `window.innerWidth`.
-
-**Fixed extents and scaled text do not mix.** Users enlarge text independently of layout —
-Android's font-size slider, iOS Dynamic Type, browser text zoom — commonly to 1.5–2×. Any
-hardcoded height, grid row extent, or aspect ratio wrapping text overflows there. Either let the
-container size to its content, or grow the extent by the text scale factor
-(`MediaQuery.textScalerOf` in Flutter, `rem`/`em` on web). Check at 200%: it is a real setting,
-not a theoretical one.
-
-### State-driven UI
-- UI is a function of state: hoist state out of the view, pass data down and events up.
-- Model loading, empty, and error states explicitly — a screen that only renders the happy path
-  is unfinished.
-- No imperative view mutation in a declarative framework.
-- **Distinguish offline from server failure.** "Check your connection" is the wrong advice for a
-  request the server rejected, and sends the user off to debug their wifi instead of the actual
-  problem. Classify the error and change the glyph, headline and advice accordingly. Be
-  conservative: only transport-level failures (socket, DNS, timeout, failed fetch) are offline;
-  an auth or permission rejection arrived over a working connection. An unreachable server is
-  also a *warning*, not an error — nothing is broken and nothing was lost — so painting it in the
-  same red as a real failure just trains people to ignore red.
-- Prefer a shape-matched skeleton over a bare spinner when the incoming layout is known, and give
-  the skeleton the same extents the real content will take, so landing data does not jolt the
-  page.
-
-### Motion restraint
-- Animation serves orientation (where did this come from, where did it go) — never decoration
-  for its own sake.
-- Keep durations short and respect the platform's reduced-motion setting.
-
-## Never mix framework idioms
-
-One project, one framework's patterns. Do not port a React habit into Compose or a Compose habit
-into Flutter — detect what the project uses and write idiomatic code for that framework only.
+Run the project's relevant checks. When a preview is available, open the changed screen in a
+browser, simulator, or device and exercise the affected flow. Check representative narrow and wide
+layouts, the applicable input modes, and alternate states. For visual work, inspect the rendered
+hierarchy and spacing. For shared controls, use an existing interaction test or add focused coverage
+when a keyboard or focus regression would otherwise go undetected. For performance work, compare
+the relevant trace or measurement before and after when available. Report which checks ran and
+which required a runtime or device you could not access.
