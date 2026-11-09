@@ -39,7 +39,7 @@ Restart Claude Code (or start a new session), then in any project:
 1. **`/craftsman:init`** — detects your stack, proposes a project `CLAUDE.md` (with the real
    build/verify command) and a `KNOWN_ISSUES.md` template, and asks before writing anything.
 2. **`/craftsman:orchestrate <task>`** for multi-step work; **`/craftsman:quick <change>`** for
-   one-line fixes. (`@craftsman:orchestrator <task>` dispatches the same pipeline as a subagent.)
+   one-line fixes. Use `@craftsman:orchestrator <task>` for help coordinating from a subagent.
 3. When a bug comes in and the project has a graphify graph, the investigation automatically runs
    through the graph first and checks whether the bug duplicates a `KNOWN_ISSUES.md` entry.
 
@@ -54,7 +54,7 @@ craftsman-plugin/
 ├── .claude-plugin/plugin.json    Plugin manifest
 ├── .mcp.json                     Bundled MCP servers (see MCP servers)
 ├── agents/                       Fifteen agents (see Agents reference)
-├── skills/                       Eight skills (see Skills reference)
+├── skills/                       Nine skills (see Skills reference)
 ├── commands/
 │   ├── init.md                   /craftsman:init — project scaffolder
 │   ├── orchestrate.md            /craftsman:orchestrate — full pipeline, end to end
@@ -141,7 +141,7 @@ Or from inside a session: `/plugin marketplace add bufferBrew/craftsman` then
 `/plugin install craftsman@craftsman`.
 
 Restart Claude Code (or start a new session) after installing. Verify with `claude plugin list`
-and inspect the loaded components with `claude plugin details craftsman` — it should report 15 agents. Claude Code counts commands as skills in the plugin details output: 8 skill files + 8 command files = 16 under the skills heading, and 4 hook events
+and inspect the loaded components with `claude plugin details craftsman` — it should report 15 agents. Claude Code counts commands as skills in the plugin details output: 9 skill files + 8 command files = 17 under the skills heading, and 4 hook events
 (SessionStart, UserPromptSubmit, PreToolUse, Stop). Only SessionStart has an always-on cost (roughly 1.2k tokens per session); the other three are event-driven and inject a short nudge only when a real signal matches — no idle cost.
 
 ### Option C — install from a local marketplace checkout
@@ -197,19 +197,13 @@ offers to install the `graphifyy` package — running the install only on explic
 
 ### `/craftsman:orchestrate <task>`
 
-The full pipeline, end to end: classifies the task, restates its scope in one sentence, selects the
-minimal agent set for that task type, dispatches each specialist with a self-contained prompt, gates
-every stage on the agent's `STATUS`/`FILES CHANGED`/`VERIFIED BY`/`EVIDENCE`/`CAVEATS` handoff block
-rather than its prose, repairs at most twice per gate (escalating to a different agent on the second
-attempt), and closes with a structured report.
+Runs the [shared Craftsman workflow](skills/craftsman-workflow/SKILL.md) in the main session.
+It selects the smallest pipeline for the task, passes each specialist the scope and success
+criteria, and checks commands or artifacts before accepting the result. On longer runs it records
+enough context to resume from the last valid check. Each failed check gets at most two repairs.
 
-It runs in the main thread rather than dispatching the `orchestrator` agent as a subagent. Two
-reasons: orchestration *is* subagent dispatch, and nesting that inside a subagent is unreliable;
-and the ideation gate needs interactive Q&A, which the main thread can hold and a subagent cannot
-(as a subagent, `orchestrator` has to bounce underspecified features back to its caller).
-
-`@craftsman:orchestrator <task>` still works and is the right choice when you want the pipeline run
-in its own context.
+The main session owns user decisions and coordinates the run. When
+`@craftsman:orchestrator <task>` lacks nested dispatch, it returns a plan for the caller to run.
 
 ### `/craftsman:discover <vague idea>`
 
@@ -298,11 +292,16 @@ translates: LiteLLM, OpenRouter, a Codex router, or a local server such as Ollam
 the agents. `craftsman-models env` prints that block for the saved profile. Preset model names are
 a snapshot (October 2026); pass newer ones with the tier flags.
 
-**Codex CLI.** `scripts/craftsman-export codex` installs the agents as Codex custom agents
+### Codex CLI
+
+From the repository root, run `bash craftsman-plugin/scripts/craftsman-export codex`.
+This installs the agents as Codex custom agents
 (`~/.codex/agents/craftsman_<name>.toml`, model and reasoning effort from the tier, a read-only
-sandbox unless the agent can edit files) and copies the skills to `~/.agents/skills/`. Hooks and
-slash commands don't carry over, and the prompts still mention Claude Code tools such as Skill and
-Agent. `--dry-run` previews; `--uninstall` removes exactly what the export wrote.
+sandbox unless the agent can edit files) and copies the skills to `~/.agents/skills/`.
+In a fresh Codex session, invoke `$craftsman-workflow <task>` to run the pipeline. It uses native
+subagents where enabled and can apply specialist roles sequentially when dispatch is unavailable.
+Claude Code hooks and slash commands are specific to the Claude install. Use `--dry-run` to preview
+the export and `--uninstall` to remove the paths it recorded.
 
 ### `/craftsman:models [list | show | set <preset> | reset | env | export codex]`
 
@@ -357,6 +356,7 @@ directly.
 
 | Skill | When it applies |
 |---|---|
+| `craftsman-workflow` | End-to-end orchestration in Claude Code or Codex. Selects specialists, checks evidence against the candidate checkout, and records how to resume interrupted work. |
 | `ideation-first` | Before planning a new feature or greenfield refactor whose requirements aren't pinned down. Two depths: **quick** (default) asks 3–5 questions one at a time and emits a **Scope brief** (Goal / In scope / Out of scope / Key decisions / Open questions); **deep** (`/craftsman:discover`) grounds 10–20 questions in a `requirements-analyst` dossier, asks them in 3–4 sequenced rounds, and writes a numbered requirements spec — still emitting the brief, which stays the machine handoff. Expands the *questions*, not the scope: extra findings land in Out of scope. Skipped for well-specified requests, `quick`, and `bugfix`. Runs in the main thread (interactive). `/craftsman:orchestrate` runs it directly; the `@craftsman:orchestrator` subagent gates on the brief's presence rather than running it itself. |
 | `smallest-change-first` | Before writing any new code/file/dependency. Seven-step ladder: needs to exist? → already in codebase? → stdlib? → platform feature? → existing dependency? → one line? → only then write the minimum. Source of the "ask before anything extra" rule. |
 | `logging-tradeoffs` | When taking a deliberate shortcut, investigating a possibly-logged bug, or resolving an entry. Defines the `KNOWN_ISSUES.md` format: what changed / ceiling / upgrade trigger / status. |

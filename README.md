@@ -13,7 +13,7 @@
 
 **craftsman** makes engineering discipline the default in [Claude Code](https://code.claude.com):
 the smallest correct change, no fix without a root cause, and an honest report of what was
-actually verified. It bundles fifteen agents, eight skills, eight slash commands, and a cross-platform
+actually verified. It bundles fifteen agents, nine skills, eight slash commands, and a cross-platform
 hook system — installable in two commands.
 
 <p align="center">
@@ -36,6 +36,9 @@ Or from inside a Claude Code session:
 
 Restart Claude Code (or start a new session) after installing, then run `/craftsman:init` in any
 project to get started.
+
+For Codex, use the [Codex export](./craftsman-plugin/README.md#codex-cli), then invoke
+`$craftsman-workflow` in the main session for multi-step work.
 
 ## What you get
 

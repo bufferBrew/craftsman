@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Version numbers track `.claude-plugin/plugin.json` (kept in sync with the root
 `marketplace.json`).
 
+## [Unreleased]
+
+### Changed
+- Claude Code and Codex share a Craftsman workflow skill for selecting specialists, checking
+  evidence against the current checkout, and resuming interrupted runs. The Codex export includes
+  the skill and uses native subagents where the session permits dispatch.
+
 ## [0.12.0] - 2026-10-24
 
 ### Added
