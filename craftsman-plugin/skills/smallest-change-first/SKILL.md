@@ -26,7 +26,11 @@ Before writing anything, walk this ladder in order. Stop at the first step that 
 4. **Is it a native platform/framework feature?** Check the framework's own docs (see the
    researcher agent) before writing custom logic — many "custom" needs are a one-line config flag.
 5. **Is it an already-adopted dependency in this project?** Check `package.json`/`pyproject.toml`/
-   `build.gradle`/etc. for a library already in use that does this, before adding a new one.
+   `build.gradle`/etc. for a library already in use that does this, before adding a new one. If
+   nothing adopted fits and the need is more than a few lines (a parser, a chart, auth, PDF
+   handling, a sync engine), search before hand-rolling it: invoke the `github-repo-scout` skill
+   to find and vet a maintained open-source project. A vetted candidate is a *proposal*, not a
+   decision: adding it is a new dependency, so the "ask before extra" rule below applies.
 6. **Can it be one line?** If steps 1–5 don't resolve it, can the need be met in a single
    expression rather than a new abstraction?
 7. **Only now, write the minimum code that solves the stated problem.** No more.
@@ -50,6 +54,7 @@ findable tradeoff beats an undocumented one every time.
 | Thought | Reality |
 |---|---|
 | "I'll just add a small helper for this" | Check steps 2–4 first — it may already exist. |
+| "Nothing in the project does this, I'll build it" | Run `github-repo-scout` first; a maintained project may already solve it. |
 | "This library is heavy, I'll write my own version" | A hand-rolled subset is usually worse than the dependency, and now it's yours to maintain forever. |
 | "While I'm in here, I'll also clean up X" | That's scope creep. Surface it, ask, don't just do it. |
 | "This edge case probably won't happen" | If it's in scope, handle it; if it's not, don't add speculative handling either. |

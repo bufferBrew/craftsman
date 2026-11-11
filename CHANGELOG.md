@@ -13,6 +13,9 @@ Version numbers track `.claude-plugin/plugin.json` (kept in sync with the root
 - `github-repo-scout` skill: GitHub repo of the day/week/month (from GitHub Trending), top-starred
   lists, task-based repo search ranked by relevance, and a verification pass per repo. Ships a
   stdlib-only `scripts/scout.py`; read-only, uses `GITHUB_TOKEN`/`gh` for rate limits when present.
+  `smallest-change-first` (ladder step 5), the feature-request router hint and the session-start
+  reminder now send Claude to it before building a feature a library might already provide; a
+  found repo is only ever proposed, never added without asking.
 
 ## [0.12.0] - 2026-10-24
 
