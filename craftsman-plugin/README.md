@@ -54,7 +54,7 @@ craftsman-plugin/
 ├── .claude-plugin/plugin.json    Plugin manifest
 ├── .mcp.json                     Bundled MCP servers (see MCP servers)
 ├── agents/                       Fifteen agents (see Agents reference)
-├── skills/                       Eight skills (see Skills reference)
+├── skills/                       Nine skills (see Skills reference)
 ├── commands/
 │   ├── init.md                   /craftsman:init — project scaffolder
 │   ├── orchestrate.md            /craftsman:orchestrate — full pipeline, end to end
@@ -358,12 +358,13 @@ directly.
 | Skill | When it applies |
 |---|---|
 | `ideation-first` | Before planning a new feature or greenfield refactor whose requirements aren't pinned down. Two depths: **quick** (default) asks 3–5 questions one at a time and emits a **Scope brief** (Goal / In scope / Out of scope / Key decisions / Open questions); **deep** (`/craftsman:discover`) grounds 10–20 questions in a `requirements-analyst` dossier, asks them in 3–4 sequenced rounds, and writes a numbered requirements spec — still emitting the brief, which stays the machine handoff. Expands the *questions*, not the scope: extra findings land in Out of scope. Skipped for well-specified requests, `quick`, and `bugfix`. Runs in the main thread (interactive). `/craftsman:orchestrate` runs it directly; the `@craftsman:orchestrator` subagent gates on the brief's presence rather than running it itself. |
-| `smallest-change-first` | Before writing any new code/file/dependency. Seven-step ladder: needs to exist? → already in codebase? → stdlib? → platform feature? → existing dependency? → one line? → only then write the minimum. Source of the "ask before anything extra" rule. |
+| `smallest-change-first` | Before writing any new code/file/dependency. Seven-step ladder: needs to exist? → already in codebase? → stdlib? → platform feature? → existing dependency? → one line? → only then write the minimum. Source of the "ask before anything extra" rule. Before hand-rolling a non-trivial capability it points to `github-repo-scout`. |
 | `logging-tradeoffs` | When taking a deliberate shortcut, investigating a possibly-logged bug, or resolving an entry. Defines the `KNOWN_ISSUES.md` format: what changed / ceiling / upgrade trigger / status. |
 | `environment-memory` | Before retrying anything that failed once; after discovering an OS/shell/tool quirk. Reads/appends `~/.claude/craftsman-memory/environment-quirks.md`. |
 | `caveats-and-status` | When reporting any nontrivial task complete. Fixed closing block: Verified / Assumed / Not covered. |
 | `ui-craft` | Before writing or changing any UI, in any framework. Design-token discipline (design-system/MASTER.md → theme layer → conventions), accessibility (contrast, touch targets, semantics), responsive layout, state-driven UI, motion restraint. Referenced by `ui-designer`. |
 | `graphify-recurring-bugs` | During bug investigation **only when** `graphify-out/graph.json` exists; complete no-op otherwise. See next section. |
+| `github-repo-scout` | When asked for the GitHub repo of the day/week/month, trending or top-starred repos, "is there a repo for X", or whether a repo is maintained. Bundled `scripts/scout.py` (stdlib Python, read-only): reads GitHub Trending, searches by relevance or stars, and vets candidates (not archived/fork, licensed, pushed within a year, adoption, verified org, star-spike flags). Heuristic, not a security audit. |
 | `commit-craft` | Before any git commit, branch, or PR. Atomic commits; imperative ~50-char subject + why-focused body + `Co-Authored-By` trailer; branch naming; history hygiene (squash fixups, `--force-with-lease`); PR conventions (small, what/why/testing, `Closes #`, Claude Code trailer, green CI). Only commits/pushes/PRs when asked; branches first off `main`. |
 
 ## Automatic skill routing (hooks)
