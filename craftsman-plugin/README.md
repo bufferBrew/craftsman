@@ -54,7 +54,7 @@ craftsman-plugin/
 ├── .claude-plugin/plugin.json    Plugin manifest
 ├── .mcp.json                     Bundled MCP servers (see MCP servers)
 ├── agents/                       Fifteen agents (see Agents reference)
-├── skills/                       Eight skills (see Skills reference)
+├── skills/                       Nine skills (see Skills reference)
 ├── commands/
 │   ├── init.md                   /craftsman:init — project scaffolder
 │   ├── orchestrate.md            /craftsman:orchestrate — full pipeline, end to end
@@ -364,6 +364,7 @@ directly.
 | `caveats-and-status` | When reporting any nontrivial task complete. Fixed closing block: Verified / Assumed / Not covered. |
 | `ui-craft` | Before writing or changing any UI, in any framework. Design-token discipline (design-system/MASTER.md → theme layer → conventions), accessibility (contrast, touch targets, semantics), responsive layout, state-driven UI, motion restraint. Referenced by `ui-designer`. |
 | `graphify-recurring-bugs` | During bug investigation **only when** `graphify-out/graph.json` exists; complete no-op otherwise. See next section. |
+| `github-repo-scout` | When asked for the GitHub repo of the day/week/month, trending or top-starred repos, "is there a repo for X", or whether a repo is maintained. Bundled `scripts/scout.py` (stdlib Python, read-only): reads GitHub Trending, searches by relevance or stars, and vets candidates (not archived/fork, licensed, pushed within a year, adoption, verified org, star-spike flags). Heuristic, not a security audit. |
 | `commit-craft` | Before any git commit, branch, or PR. Atomic commits; imperative ~50-char subject + why-focused body + `Co-Authored-By` trailer; branch naming; history hygiene (squash fixups, `--force-with-lease`); PR conventions (small, what/why/testing, `Closes #`, Claude Code trailer, green CI). Only commits/pushes/PRs when asked; branches first off `main`. |
 
 ## Automatic skill routing (hooks)
