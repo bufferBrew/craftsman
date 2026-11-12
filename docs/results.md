@@ -4,17 +4,17 @@ title: Results
 
 # Results
 
-craftsman shipped its first public release ([v0.1.0](https://github.com/bufferBrew/craftsman/releases))
+craftsman shipped its first public release ([v0.1.0](https://github.com/bufferbrewlabs/craftsman/releases))
 this week, so there isn't yet a corpus of external before/after sessions to report on. Rather than
 invent numbers, this page tracks two things: real, verifiable examples of the discipline from
 craftsman's own commit history (a plugin repo maintained under its own rules), and it will grow
 with genuine field examples as the plugin gets used elsewhere. If you have a before/after from
-your own project, see [CONTRIBUTING.md](https://github.com/bufferBrew/craftsman/blob/main/CONTRIBUTING.md)
+your own project, see [CONTRIBUTING.md](https://github.com/bufferbrewlabs/craftsman/blob/main/CONTRIBUTING.md)
 for how to submit one.
 
 ## Minimal diff, verified in this repo's own history
 
-**[`7c9b7b0`](https://github.com/bufferBrew/craftsman/commit/7c9b7b07d00b096723724fcd896124c365899f98)
+**[`7c9b7b0`](https://github.com/bufferbrewlabs/craftsman/commit/7c9b7b07d00b096723724fcd896124c365899f98)
 — "Fix stale agent count in root README (9 -> 10)"**
 
 ```
@@ -27,7 +27,7 @@ surrounding prose touched, no reformatting.
 
 ## Root cause over symptom patch, verified in this repo's own history
 
-**[`42cabb2`](https://github.com/bufferBrew/craftsman/commit/42cabb210b83a5e05a92ce6d133f25b472845c78)
+**[`42cabb2`](https://github.com/bufferbrewlabs/craftsman/commit/42cabb210b83a5e05a92ce6d133f25b472845c78)
 — the bash graphify hook's non-empty check**
 
 The `pretooluse-graphify-bash` hook was silently misbehaving because of a one-character-class bash

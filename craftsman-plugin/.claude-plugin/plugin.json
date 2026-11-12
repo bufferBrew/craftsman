@@ -6,8 +6,8 @@
     "name": "bufferbrew",
     "email": "bufferbrew@gmail.com"
   },
-  "homepage": "https://github.com/bufferBrew/craftsman",
-  "repository": "https://github.com/bufferBrew/craftsman",
+  "homepage": "https://github.com/bufferbrewlabs/craftsman",
+  "repository": "https://github.com/bufferbrewlabs/craftsman",
   "license": "MIT",
   "keywords": [
     "agents",

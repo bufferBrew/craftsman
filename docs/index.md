@@ -12,7 +12,7 @@ two commands.
 ## Install
 
 ```
-claude plugin marketplace add bufferBrew/craftsman
+claude plugin marketplace add bufferbrewlabs/craftsman
 claude plugin install craftsman@craftsman
 ```
 
@@ -35,12 +35,12 @@ Restart Claude Code (or start a new session), then run `/craftsman:init` in any 
 
 - [Use cases](./use-cases.html) — four worked scenarios showing when each piece earns its keep.
 - [Results](./results.html) — real, verifiable before/after evidence, honestly scoped to what exists so far.
-- [Full plugin reference](https://github.com/bufferBrew/craftsman/blob/main/craftsman-plugin/README.md) —
+- [Full plugin reference](https://github.com/bufferbrewlabs/craftsman/blob/main/craftsman-plugin/README.md) —
   agents, skills, commands, hooks, installation options, troubleshooting.
-- [Changelog](https://github.com/bufferBrew/craftsman/blob/main/CHANGELOG.md)
-- [Contributing](https://github.com/bufferBrew/craftsman/blob/main/CONTRIBUTING.md)
-- [Source on GitHub](https://github.com/bufferBrew/craftsman)
+- [Changelog](https://github.com/bufferbrewlabs/craftsman/blob/main/CHANGELOG.md)
+- [Contributing](https://github.com/bufferbrewlabs/craftsman/blob/main/CONTRIBUTING.md)
+- [Source on GitHub](https://github.com/bufferbrewlabs/craftsman)
 
 ## License
 
-[MIT](https://github.com/bufferBrew/craftsman/blob/main/LICENSE)
+[MIT](https://github.com/bufferbrewlabs/craftsman/blob/main/LICENSE)
