@@ -5,7 +5,7 @@ title: Use cases
 # Use cases
 
 Four worked scenarios showing when each part of craftsman earns its keep. Component details are
-in the [plugin reference](https://github.com/bufferBrew/craftsman/blob/main/craftsman-plugin/README.md).
+in the [plugin reference](https://github.com/bufferbrewlabs/craftsman/blob/main/craftsman-plugin/README.md).
 
 ## 1. "Every fix comes back with a bonus refactor"
 
