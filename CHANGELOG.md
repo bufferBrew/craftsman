@@ -28,6 +28,27 @@ Version numbers track `.claude-plugin/plugin.json` (kept in sync with the root
   that lists each busy flag's set/reset lines, `finally`/`catch` resets, `mounted` checks and
   guards (Dart by default; `--ext .ts,.tsx` for TypeScript).
 
+### Changed
+- `ui-craft` now covers the target, motion and speed. Before, it had two lines on motion and
+  nothing on performance or on which device the UI runs on. New sections:
+  - **Know the target, not only the framework.** Rules for desktop web, mobile web, native
+    Android and native iOS, since one codebase often ships to several.
+  - **Motion and transitions** replaces "Motion restraint". Motion values are tokens, with timing
+    ranges, a transition for each navigation relationship (peers, parent to child, steps,
+    overlays, in-place changes) and its primitive per framework, compositor-only properties,
+    interruptibility, and reduced motion per framework.
+  - **Performance is part of the design.** Immediate input feedback and optimistic updates, lazy
+    lists, sized images, narrow rebuilds, and startup rules for web, Flutter web and Android.
+  - **Modernizing an existing UI.** Audit with counts, fix the foundations in the theme layer
+    or shared package, then the highest-traffic flows, and propose before restyling.
+  - **Verify on a rendered surface.**
+- `ui-designer` can now use the bundled `chrome-devtools` server. Its `tools` allowlist had no
+  MCP tools, so the agent could not reach the server 0.11.0 added for it and still reported
+  visual appearance as unverifiable. It now loads web targets at desktop width and under mobile
+  emulation, takes screenshots, and runs Lighthouse or a performance trace, limited to the
+  project's own local or preview URL. It also detects the project's targets, treats motion
+  values as tokens, and has a modernize mode that audits and proposes before changing anything.
+
 ### Fixed
 - `craftsman-export codex` checks every target before writing anything. Before, a file it hadn't
   written stopped it halfway, with some agents replaced and the manifest still describing the old
