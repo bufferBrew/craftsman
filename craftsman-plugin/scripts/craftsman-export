@@ -86,6 +86,11 @@ if [ "$UNINSTALL" = yes ]; then
     [ -f "$MANIFEST" ] || die "nothing to uninstall (no ${MANIFEST})"
     while IFS= read -r path; do
         [ -n "$path" ] || continue
+        # Only ever remove inside the two export directories, whatever the manifest says.
+        case "$path" in
+            "${CODEX_DIR}/agents/craftsman_"*.toml|"${SKILLS_DIR}/"?*) ;;
+            *) echo "skipped ${path} (outside the export directories)"; continue ;;
+        esac
         if [ "$DRY_RUN" = yes ]; then echo "would remove ${path}"; else rm -rf "$path" && echo "removed ${path}"; fi
     done < "$MANIFEST"
     [ "$DRY_RUN" = yes ] || rm -f "$MANIFEST"
@@ -99,13 +104,14 @@ done
 previous=""
 [ -f "$MANIFEST" ] && previous="$(cat "$MANIFEST")"
 
-# Refuse to clobber a file a previous export didn't write, unless --force.
-check_target() {
-    local path="$1"
-    [ -e "$path" ] || return 0
-    [ "$FORCE" = yes ] && return 0
-    printf '%s\n' "$previous" | grep -qxF "$path" && return 0
-    die "${path} already exists and wasn't written by craftsman-export (use --force to overwrite)"
+# True when a previous export wrote this path (it is in the manifest).
+ours() {
+    printf '%s\n' "$previous" | grep -qxF "$1"
+}
+
+# True when the path exists and a previous export didn't write it.
+foreign() {
+    [ -e "$1" ] && ! ours "$1"
 }
 
 written=()
@@ -141,7 +147,29 @@ render_agent() {
     printf "developer_instructions = '''\n%s\n'''\n" "$instructions"
 }
 
-for file in "$PLUGIN_ROOT"/agents/*.md; do
+# Every target, checked before anything is written so a conflict can't leave a
+# half-finished export (some files replaced, the manifest still describing the old set).
+agent_files=("$PLUGIN_ROOT"/agents/*.md)
+skill_dirs=("$PLUGIN_ROOT"/skills/*/)
+targets=()
+for file in "${agent_files[@]}"; do
+    name="$(basename "$file" .md)"
+    targets+=("${CODEX_DIR}/agents/craftsman_${name//-/_}.toml")
+done
+for dir in "${skill_dirs[@]}"; do
+    targets+=("${SKILLS_DIR}/$(basename "$dir")")
+done
+
+conflicts=()
+for dest in "${targets[@]}"; do
+    foreign "$dest" && conflicts+=("$dest")
+done
+if [ "${#conflicts[@]}" -gt 0 ] && [ "$FORCE" = no ]; then
+    printf 'craftsman-export: %s already exists and was not written by craftsman-export\n' "${conflicts[@]}" >&2
+    die "nothing written; move those aside or pass --force to overwrite them"
+fi
+
+for file in "${agent_files[@]}"; do
     name="$(basename "$file" .md)"
     dest="${CODEX_DIR}/agents/craftsman_${name//-/_}.toml"
     content="$(render_agent "$file")"
@@ -149,27 +177,49 @@ for file in "$PLUGIN_ROOT"/agents/*.md; do
         echo "would write ${dest} ($(printf '%s\n' "$content" | sed -n 's/^model = //p'))"
         continue
     fi
-    check_target "$dest"
     mkdir -p "$(dirname "$dest")"
     printf '%s\n' "$content" > "$dest"
     written+=("$dest")
     echo "wrote ${dest}"
 done
 
-for dir in "$PLUGIN_ROOT"/skills/*/; do
+for dir in "${skill_dirs[@]}"; do
     name="$(basename "$dir")"
     dest="${SKILLS_DIR}/${name}"
     if [ "$DRY_RUN" = yes ]; then
         echo "would copy skill ${name} -> ${dest}"
         continue
     fi
-    check_target "$dest"
     rm -rf "$dest"
     mkdir -p "$SKILLS_DIR"
     cp -R "${dir%/}" "$dest"
+    # Claude Code tells a skill where it lives; Codex doesn't, so write the real path into
+    # any instruction that says `<skill base directory>` (e.g. how to run a bundled script).
+    while IFS= read -r md; do
+        grep -qF '<skill base directory>' "$md" || continue
+        sed "s|<skill base directory>|${dest}|g; s| (the base directory is shown when this skill loads)||g" \
+            "$md" > "${md}.tmp" && mv "${md}.tmp" "$md"
+    done < <(find "$dest" -type f -name '*.md')
     written+=("$dest")
     echo "copied skill ${name} -> ${dest}"
 done
+
+# Files a previous export wrote that this one no longer ships (a removed or renamed skill or
+# agent). Only paths inside the two export directories are touched.
+while IFS= read -r path; do
+    [ -n "$path" ] || continue
+    printf '%s\n' "${targets[@]}" | grep -qxF "$path" && continue
+    case "$path" in
+        "${CODEX_DIR}/agents/craftsman_"*.toml|"${SKILLS_DIR}/"?*) ;;
+        *) continue ;;
+    esac
+    [ -e "$path" ] || continue
+    if [ "$DRY_RUN" = yes ]; then
+        echo "would remove ${path} (no longer shipped)"
+    else
+        rm -rf "$path" && echo "removed ${path} (no longer shipped)"
+    fi
+done <<< "$previous"
 
 if [ "$DRY_RUN" = no ]; then
     mkdir -p "$CODEX_DIR"

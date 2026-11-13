@@ -215,7 +215,8 @@ in its own context.
 ### `/craftsman:state-machines [area]`
 
 Maps the lifecycles the code never declares — `status` columns, lifecycle enums, `_busy` flags,
-optimistic-update layers — using the `implicit-state-machines` skill. Classifies each as persisted,
+optimistic-update layers, on-device storage and leftover files — using the `implicit-state-machines`
+skill. Classifies each as persisted,
 derived or in-memory, traces every writer to `file:line`, and reports what the transitions really
 are plus the bugs in the gaps: states with no exit on some path, states nothing sets, writes that
 skip a guard, persisted copies of derived states, and racing writers. Read-only; fixes are handed to
@@ -312,7 +313,11 @@ a snapshot (October 2026); pass newer ones with the tier flags.
 (`~/.codex/agents/craftsman_<name>.toml`, model and reasoning effort from the tier, a read-only
 sandbox unless the agent can edit files) and copies the skills to `~/.agents/skills/`. Hooks and
 slash commands don't carry over, and the prompts still mention Claude Code tools such as Skill and
-Agent. `--dry-run` previews; `--uninstall` removes exactly what the export wrote.
+Agent. Skills that ship a script get its real installed path written in, since Codex doesn't tell a
+skill where it lives. Run the export again after updating craftsman: it refreshes every file, removes
+skills and agents that are no longer shipped, and checks every target first, so a file it didn't
+write stops it before anything changes (`--force` overwrites). `--dry-run` previews, including
+conflicts and removals; `--uninstall` removes exactly what the export wrote.
 
 ### `/craftsman:models [list | show | set <preset> | reset | env | export codex]`
 

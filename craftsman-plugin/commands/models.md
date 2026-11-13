@@ -55,11 +55,14 @@ sandbox unless it can edit files) and each skill is copied to `~/.agents/skills/
 `gpt-6-astra` / `gpt-6.1-sol` / `gpt-6-luna`.
 
 1. Run `"${CLAUDE_PLUGIN_ROOT}/scripts/craftsman-export" codex --dry-run` with the user's flags and
-   show the file list.
+   show the file list, plus any conflicts (files the export didn't write) and removals (files a
+   previous export wrote that are no longer shipped). On a conflict, ask whether to move that
+   file aside or pass `--force`; never pass `--force` without asking.
 2. Ask **y/n**. On `y`, run it without `--dry-run`.
 3. Say what doesn't carry over: hooks and slash commands have no Codex equivalent, and the agent
    prompts still mention Claude Code tools such as Skill and Agent. `craftsman-export codex
-   --uninstall` removes everything the export wrote.
+   --uninstall` removes everything the export wrote. To pick up a craftsman update, run the export
+   again.
 
 The model names in the presets are a snapshot. If the user names newer models, pass them with
 `--deep` / `--balanced` / `--fast` rather than arguing for the preset.
