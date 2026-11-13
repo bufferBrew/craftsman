@@ -36,6 +36,8 @@ case "$low" in
     emit "CI/CD-shaped request: root-cause with the cicd-debugger agent (read-only) before editing any workflow YAML." ;;
   *refactor*|*restructure*|*"extract method"*|*"clean up this"*)
     emit "Refactor-shaped request: walk craftsman:smallest-change-first, find callers first (refactor-agent), verify the build before and after, and close with Status + Caveats." ;;
+  *"state machine"*|*"state-machine"*|*lifecycle*|*"status transitions"*|*"stuck in"*)
+    emit "State-machine-shaped request: apply craftsman:implicit-state-machines (or /craftsman:state-machines) — find status columns, lifecycle enums and busy flags, trace every writer to file:line, and flag stuck, dead, unguarded, stale and racy states. Read-only. Close with Status + Caveats." ;;
   *crash*|*" bug"*|*"is broken"*|*"not working"*|*"wrong behavior"*|*"fix the"*)
     emit "Bug-shaped request: establish root cause first with the debugger agent; if graphify-out/graph.json exists, use craftsman:graphify-recurring-bugs before raw grep. Close with Status + Caveats." ;;
   *" test"*|*"tests"*|*coverage*|*regression*)

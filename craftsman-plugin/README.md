@@ -54,7 +54,7 @@ craftsman-plugin/
 ├── .claude-plugin/plugin.json    Plugin manifest
 ├── .mcp.json                     Bundled MCP servers (see MCP servers)
 ├── agents/                       Fifteen agents (see Agents reference)
-├── skills/                       Nine skills (see Skills reference)
+├── skills/                       Ten skills (see Skills reference)
 ├── commands/
 │   ├── init.md                   /craftsman:init — project scaffolder
 │   ├── orchestrate.md            /craftsman:orchestrate — full pipeline, end to end
@@ -63,6 +63,7 @@ craftsman-plugin/
 │   ├── doctor.md                 /craftsman:doctor — install health check (--fix to remediate)
 │   ├── review.md                 /craftsman:review — direct reviewer routing
 │   ├── security.md               /craftsman:security — direct security audit routing
+│   ├── state-machines.md         /craftsman:state-machines — map and audit implicit state machines
 │   └── models.md                 /craftsman:models — model profiles, providers, Codex export
 ├── scripts/
 │   ├── craftsman-models          Applies a model profile to the agents
@@ -210,6 +211,15 @@ and the ideation gate needs interactive Q&A, which the main thread can hold and 
 
 `@craftsman:orchestrator <task>` still works and is the right choice when you want the pipeline run
 in its own context.
+
+### `/craftsman:state-machines [area]`
+
+Maps the lifecycles the code never declares — `status` columns, lifecycle enums, `_busy` flags,
+optimistic-update layers — using the `implicit-state-machines` skill. Classifies each as persisted,
+derived or in-memory, traces every writer to `file:line`, and reports what the transitions really
+are plus the bugs in the gaps: states with no exit on some path, states nothing sets, writes that
+skip a guard, persisted copies of derived states, and racing writers. Read-only; fixes are handed to
+`debugger` or `coder`.
 
 ### `/craftsman:discover <vague idea>`
 
@@ -365,6 +375,7 @@ directly.
 | `ui-craft` | Before writing or changing any UI, in any framework. Design-token discipline (design-system/MASTER.md → theme layer → conventions), accessibility (contrast, touch targets, semantics), responsive layout, state-driven UI, motion restraint. Referenced by `ui-designer`. |
 | `graphify-recurring-bugs` | During bug investigation **only when** `graphify-out/graph.json` exists; complete no-op otherwise. See next section. |
 | `github-repo-scout` | When asked for the GitHub repo of the day/week/month, trending or top-starred repos, "is there a repo for X", or whether a repo is maintained. Bundled `scripts/scout.py` (stdlib Python, read-only): reads GitHub Trending, searches by relevance or stars, and vets candidates (not archived/fork, licensed, pushed within a year, adoption, verified org, star-spike flags). Heuristic, not a security audit. |
+| `implicit-state-machines` | When asked to find or audit state machines or lifecycles, and when a review or bug touches a status/state column, lifecycle enum or busy flag. Sweeps database constraints, domain enums, back-end jobs, client busy/optimistic flags, on-device storage and leftover files (with a `busy_flags.py` helper); traces every writer to `file:line`; flags **stuck**, **dead**, **unguarded**, **stale** and **racy** states. Read-only. Run it with `/craftsman:state-machines [area]`. |
 | `commit-craft` | Before any git commit, branch, or PR. Atomic commits; imperative ~50-char subject + why-focused body + `Co-Authored-By` trailer; branch naming; history hygiene (squash fixups, `--force-with-lease`); PR conventions (small, what/why/testing, `Closes #`, Claude Code trailer, green CI). Only commits/pushes/PRs when asked; branches first off `main`. |
 
 ## Automatic skill routing (hooks)
