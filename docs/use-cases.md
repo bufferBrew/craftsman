@@ -4,7 +4,7 @@ title: Use cases
 
 # Use cases
 
-Four worked scenarios showing when each part of craftsman earns its keep. Component details are
+Five worked scenarios showing when each part of craftsman earns its keep. Component details are
 in the [plugin reference](https://github.com/bufferbrewlabs/craftsman/blob/main/craftsman-plugin/README.md).
 
 ## 1. "Every fix comes back with a bonus refactor"
@@ -81,3 +81,27 @@ Caveats & status
 
 so "done" always comes with its boundaries attached — what was proven, what was assumed, and
 what you still need to check yourself.
+
+## 5. "It works, except when it gets stuck"
+
+**Symptom:** a sync stops running and nothing says why. A job sits at `running` for days. A
+"converted" item quietly turns back into "kept". Each one is a lifecycle the code never wrote
+down: a `status` column, an enum or a `_busy` flag, with transitions scattered across whoever
+happens to write it.
+
+**With craftsman:** `/craftsman:state-machines` runs the `implicit-state-machines` skill. It reads
+the states from the schema, the types, on-device storage and leftover files, then finds every line
+that **writes** each state. The transitions it can prove from code are the real machine. It reports:
+
+```
+Findings
+  1. [Stuck] connections.status: the scheduled sync only selects `active`, failures set `error`,
+     and only a manual sync sets it back. One failure stops background sync for good.
+     sync-worker/index.ts:121, :184, :390
+  2. [Dead] sync_jobs.status = queued: only the column default; jobs are inserted as `running`.
+  3. [Unguarded] "Keep" writes `kept` without checking the current status, undoing `converted`.
+```
+
+It is read-only: fixes go to `debugger` or `coder`. For a client with dozens of busy flags, its
+`busy_flags.py` helper lists where each flag is set and reset, and whether anything guards it.
+

@@ -28,6 +28,18 @@ Version numbers track `.claude-plugin/plugin.json` (kept in sync with the root
   that lists each busy flag's set/reset lines, `finally`/`catch` resets, `mounted` checks and
   guards (Dart by default; `--ext .ts,.tsx` for TypeScript).
 
+### Fixed
+- `craftsman-export codex` checks every target before writing anything. Before, a file it hadn't
+  written stopped it halfway, with some agents replaced and the manifest still describing the old
+  set, and `--dry-run` didn't report the conflict.
+- A re-export now removes skills and agents a previous export wrote that craftsman no longer ships.
+  Before, they stayed installed in Codex.
+- Exported skills that ship a script now name its real installed path. Codex doesn't fill in
+  `<skill base directory>` the way Claude Code does, so the script couldn't be found.
+- `--uninstall` and the re-export cleanup only remove paths inside the two export directories,
+  whatever the manifest lists.
+- Docs: stale agent/skill/command counts in the plugin README and `docs/index.md`.
+
 ## [0.12.0] - 2026-10-24
 
 ### Added
