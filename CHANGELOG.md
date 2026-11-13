@@ -50,6 +50,14 @@ Version numbers track `.claude-plugin/plugin.json` (kept in sync with the root
   values as tokens, and has a modernize mode that audits and proposes before changing anything.
 
 ### Fixed
+- `ui-craft` and `ui-designer` gave web measurement advice that did not work against the bundled
+  `chrome-devtools` server. Found while measuring a Flutter web app: `lighthouse_audit` does not
+  score performance, a trace of a canvas app reports no LCP, a cache-bypassing reload was still
+  served from cache, and a tab stopped answering after a trace. The skill now has a "Measuring
+  web startup" procedure: time to first Flutter frame, a fresh isolated context per cold run,
+  throttling set before navigating, sizes from Resource Timing.
+- The bundled `chrome-devtools` server now starts with `--isolated`. Sessions shared one Chrome
+  profile directory before.
 - `craftsman-export codex` checks every target before writing anything. Before, a file it hadn't
   written stopped it halfway, with some agents replaced and the manifest still describing the old
   set, and `--dry-run` didn't report the conflict.

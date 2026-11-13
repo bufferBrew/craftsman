@@ -23,6 +23,7 @@ tools:
   - mcp__plugin_craftsman_chrome-devtools__press_key
   - mcp__plugin_craftsman_chrome-devtools__evaluate_script
   - mcp__plugin_craftsman_chrome-devtools__list_console_messages
+  - mcp__plugin_craftsman_chrome-devtools__list_network_requests
   - mcp__plugin_craftsman_chrome-devtools__lighthouse_audit
   - mcp__plugin_craftsman_chrome-devtools__performance_start_trace
   - mcp__plugin_craftsman_chrome-devtools__performance_stop_trace
@@ -118,8 +119,10 @@ Anything that alters colors, type or layout density needs the user's agreement f
    `chrome-devtools` tools are available. Serve the app with the command the project declares,
    then follow `ui-craft`'s "Verify on a rendered surface": load at a desktop width and under
    mobile emulation, take a screenshot of each, exercise hover, focus and pressed on what you
-   changed, and read the console. Run a Lighthouse audit or a performance trace when the change
-   touches loading or animation. If the tools are absent or the server was declined, skip this
+   changed, and read the console. When the change touches loading, measure startup with the
+   skill's "Measuring web startup" procedure: a fresh isolated context per cold run, throttling
+   set before navigating, time to first frame for Flutter web. `lighthouse_audit` here does not
+   score performance. If a tab stops answering after a trace, open a new page. If the tools are absent or the server was declined, skip this
    step and say so.
 
 ## What "done" means

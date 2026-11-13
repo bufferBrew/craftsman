@@ -99,9 +99,11 @@ Two things worth knowing before you approve:
 - `figma` is a remote server and authenticates through your Figma account via OAuth. It sends
   the file keys you ask about to Figma. There is also a local variant that talks to the desktop
   app on `127.0.0.1:3845` if you would rather not use the hosted one.
-- `chrome-devtools` launches a Chrome instance and can navigate it. Give it a profile you are
-  comfortable automating; `--headless` and `--isolated` are worth adding to the args in
-  `.mcp.json` if you want it kept away from your logged-in session.
+- `chrome-devtools` launches a Chrome instance and can navigate it. It runs with `--isolated`:
+  each session gets a temporary profile that is deleted when the browser closes. Without that
+  flag every session shares one profile directory, which Chrome only lets one browser use at
+  a time, and loads are never cold. Remove `--isolated` from the args in `.mcp.json` if you need
+  sign-ins to persist between runs, and add `--headless` if you do not want a window.
 
 ## Requirements
 

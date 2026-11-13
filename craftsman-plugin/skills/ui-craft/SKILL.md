@@ -235,7 +235,8 @@ make an app feel heavy, in the order they usually matter.
 - **Web (React/Next.js, plain):** ship less JavaScript. Render on the server where the framework
   supports it, split by route, lazy-load below-the-fold and rarely used UI, preload the font and
   the hero image. Targets: LCP ≤ 2.5s, INP ≤ 200ms, CLS ≤ 0.1, measured on a throttled mobile
-  profile.
+  profile. Compress and size every image on the first screen: one unoptimized icon can outweigh
+  the rest of the page.
 - **Flutter web:** build with `--wasm` when every dependency supports it (it falls back to
   CanvasKit in browsers without WasmGC). Split rarely visited features with deferred imports
   (`import … deferred as`). Show a styled HTML splash in `index.html`, so the user sees the
@@ -246,9 +247,9 @@ make an app feel heavy, in the order they usually matter.
   `Application.onCreate` and the first frame, and use the platform splash screen API so there is
   no blank window.
 
-**Measure, do not guess.** Use the tool the stack provides: a Lighthouse run and a performance
-trace for web (including Flutter web), Flutter DevTools' frame chart or `--profile` mode,
-Android Studio's profiler or Macrobenchmark. A performance claim with no measurement goes under
+**Measure, do not guess.** Use the tool the stack provides: a performance trace for a DOM web
+app, time to first frame for Flutter web (see "Measuring web startup"), Flutter DevTools' frame
+chart or `--profile` mode, Android Studio's profiler or Macrobenchmark. A performance claim with no measurement goes under
 "not verified".
 
 ## Modernizing an existing UI
@@ -285,8 +286,37 @@ included:
 
 - Load the page at a desktop width and again under mobile emulation with CPU throttling.
 - Take a screenshot at each, and check hover, focus and pressed states on what you changed.
-- Run a Lighthouse audit or a performance trace when the change touches loading or animation.
+- Measure startup when the change touches loading (see below).
 - Read the console for errors and layout overflow warnings.
+
+### Measuring web startup
+
+The obvious tools mislead here, so follow this procedure:
+
+- **A Lighthouse run may not include performance.** The Chrome DevTools MCP server's
+  `lighthouse_audit` covers accessibility, SEO and best practices only. Read a tool's
+  description before quoting a performance score from it.
+- **A canvas app has no LCP.** Flutter web paints to a canvas, so a performance trace reports
+  CLS and nothing else. The number that matters is the time to the first Flutter frame. Install
+  a hook before the page loads (the navigation tool's init script):
+  `window.__ff=null;addEventListener('flutter-first-frame',()=>{window.__ff=performance.now()})`,
+  then read `window.__ff`. First Contentful Paint lands about 100ms after it and is a usable
+  stand-in when no hook is installed. For a DOM app, read LCP from the trace as usual.
+- **A cold load needs a new browser context.** A cache-bypassing reload can still be answered
+  from cache. Open a fresh isolated context for every cold run, then confirm it was cold:
+  `performance.getEntriesByType('resource')` must show the main bundle with a `transferSize`
+  near its compressed size. A total of a few KB means you measured a warm load.
+- **Set throttling before navigating.** Open the context on `about:blank`, apply the mobile
+  viewport, CPU throttling (4×) and a network profile, then navigate. Report the profile with
+  the number: the same page can take under 1s unthrottled and over 20s on a slow connection.
+- **Read sizes from Resource Timing.** `transferSize` and `responseEnd` per resource show what
+  the load waits on. Cross-origin files (a CDN-hosted CanvasKit, web fonts) report a size of 0,
+  so the true total is larger than the sum.
+- **If a tab stops answering after a trace, abandon it.** Open a new page and continue. Do not
+  retry on the dead tab.
+
+Report every number with its conditions (device profile, CPU and network throttling, cold or
+warm), and take the "after" measurement the same way as the "before".
 
 For native targets, use an emulator or device tool if the session has one. Whatever you could
 not run, list as unverified. Never report a transition as smooth, or a screen as fast, from
