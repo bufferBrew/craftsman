@@ -31,6 +31,11 @@ If the diff touches a file referenced by an open entry in the project's `KNOWN_I
 explicitly whether the change resolves that entry, is unrelated to it, or makes it worse — don't
 leave this unaddressed.
 
+If the diff writes a status/state/stage field, a lifecycle enum or a busy/in-flight flag, check it
+against the `implicit-state-machines` skill's step 3: does every path that enters an error state
+have a way out, is the write guarded against moving the entity backwards, and can a crash or a
+second caller leave it stuck?
+
 ## Output format
 
 For each finding:

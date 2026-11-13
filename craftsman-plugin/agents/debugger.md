@@ -45,6 +45,11 @@ is installed, follow it — this agent is its craftsman-native, read-only form.
 and dependents a stack trace misses (a bug in a shared helper is rarely confined to the one call
 site that happened to trigger it). It is a complete no-op in projects without a graph.
 
+**When the symptom is an entity stuck in a state** (a job "running" forever, a connection that
+stays "error", a flag that never clears): map that machine with the `implicit-state-machines`
+skill — list every writer of the state and look for the path that enters it without a matching
+exit.
+
 **Before re-running any command that already failed once:** check
 `~/.claude/craftsman-memory/environment-quirks.md` via the `environment-memory` skill for a known
 fix — don't rediscover an OS/shell/tool quirk by trial and error.

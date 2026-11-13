@@ -17,6 +17,12 @@ Version numbers track `.claude-plugin/plugin.json` (kept in sync with the root
   reminder now send Claude to it before building a feature a library might already provide; a
   found repo is only ever proposed, never added without asking.
 
+- `implicit-state-machines` skill and `/craftsman:state-machines` command: map the lifecycles a
+  codebase never declares (status columns and CHECK constraints, lifecycle enums, job tables,
+  busy flags, optimistic-update layers), trace every writer to `file:line`, and flag stuck, dead,
+  unguarded, stale and racy states. Read-only. The reviewer checks state writes against it, and
+  the prompt router sends state-machine and lifecycle questions to it.
+
 ## [0.12.0] - 2026-10-24
 
 ### Added
