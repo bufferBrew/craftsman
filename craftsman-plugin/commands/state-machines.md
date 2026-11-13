@@ -9,7 +9,8 @@ Focus: $ARGUMENTS (if empty, cover the whole project).
 
 Apply the `implicit-state-machines` skill (load it with the Skill tool) and follow it end to end:
 
-1. Find candidates across all four layers — database, domain types, server/back end, client/UI.
+1. Find candidates across every layer — database, domain types, server/back end, client/UI,
+   on-device storage and the filesystem.
    If `graphify-out/graph.json` exists, use `graphify query` to locate writers before raw grep.
 2. Classify each as persisted, derived or in-memory.
 3. Trace every writer of every state to `file:line`; check initial and terminal states, error

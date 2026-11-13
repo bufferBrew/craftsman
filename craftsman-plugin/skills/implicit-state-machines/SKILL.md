@@ -21,14 +21,20 @@ This skill is read-only. It reports; it never edits code or data.
 
 ## 1. Find candidates
 
-Sweep all four layers; each hides a different kind of machine.
+Sweep every layer; each hides a different kind of machine.
 
 | Layer | Look for |
 |---|---|
-| Database | `CHECK (col IN (...))` / `= ANY (ARRAY[...])` constraints, Postgres enum types, columns named `status`, `state`, `stage`, `phase`, `step`; nullable `*_at` columns that mark a transition (`completed_at`, `revoked_at`, `claimed_at`, `lease_expires_at`) |
+| Database | `CHECK (col IN (...))` / `= ANY (ARRAY[...])` constraints, Postgres enum types, columns named `status`, `state`, `stage`, `phase`, `step`; nullable `*_at` columns that mark a transition (`completed_at`, `revoked_at`, `claimed_at`, `lease_expires_at`); a row's **existence** used as the state (one brief per date, "skip if it exists") and nullable columns filled by a later step (`notion_page_id`, `archived_url`) |
 | Domain types | `enum`s, sealed classes / tagged unions, string-literal unions (`'queued' \| 'running'`), constants lists like `['ordered', 'shipped', ...]` |
 | Server/back end | Job tables and workers (queued → running → done), retry/attempt counters, leases and heartbeats, webhooks, cron paths |
 | Client/UI | Busy flags (`_saving`, `_busy`, `_syncing`, `inFlight`), static or module-level guards, optimistic-update layers (pending → confirmed / rolled back), debounced autosave, permission flows, async-value loading/data/error |
+| On-device storage | SharedPreferences / localStorage / UserDefaults keys holding sets (read, dismissed, deleted ids), saved settings, local databases; any allowlist naming keys to sync or persist |
+| Filesystem | Temp and staging folders (`.download-*`, `*.partial`), lock files, caches whose presence means "ready"; what start-up does with ones a killed process left behind |
+
+When several apps share one database, read constraints for every schema, not just the one you
+were asked about, and note which app writes each machine — a status one app sets may be cleared
+only by another.
 
 Useful starting greps (adapt to the language):
 
@@ -41,6 +47,12 @@ grep -rnE "status: *['\"][a-z_]+['\"]|\.update\(\{ *['\"]?status" .
 
 With database access, read constraints and column defaults straight from the catalog
 (`pg_constraint`, `information_schema.columns`) — migrations can drift from the live schema.
+
+For a project with many busy flags, `scripts/busy_flags.py` (Python stdlib only) lists each
+flag's set-true and set-false lines, whether a reset sits in `finally`/`catch`, whether it is
+gated on `mounted`, and whether a guard exists. Run it as
+`python3 -I <skill base directory>/scripts/busy_flags.py <dir>`; it reads Dart by default
+(`--ext .ts,.tsx` and `--names` adapt it). Read the flags it marks before reporting them.
 
 Skip pure display enums (button sizes, colours, sort columns, categories). A candidate is a
 machine only if the value **changes over the life of one entity**.
@@ -69,12 +81,20 @@ Then check, per machine:
 - **Error recovery** — every path that enters an error/failed state: which path leaves it? Do all
   entry paths (manual, cron, retry) also have a matching exit? Asymmetry here is the most common
   real bug.
+- **Scheduler and sweeper filters** — which states does each cron, worker or sweeper *select*?
+  A scheduled sync that picks only `active` rows, sets failures to `error` and never sets them
+  back turns one failure into a permanent stop.
 - **Monotonicity** — should it only move forward (shipping stages, refunds)? Is that enforced on
   *every* writer, or only some?
 - **Unguarded writes** — a setter that ignores the current state can overwrite a state that should
   stick (e.g. "keep" clobbering "converted").
 - **Crash mid-transition** — a job set to `running` by a process that dies: is there a lease,
-  timeout or sweeper, and does the UI offer a way out?
+  timeout or sweeper, and does the UI offer a way out? Also a transition made of several separate
+  writes with no transaction (save the parent, delete the children, insert new ones): a failure
+  between them leaves a half-done entity, and an "already exists, skip" check then keeps it that
+  way. Same for files: a staging folder removed only in `finally` survives a killed process.
+- **Keys and names** — every name an allowlist, sync list or config uses for a state key must
+  match the key actually written; a mismatch silently stops that state syncing or persisting.
 - **Concurrency** — two writers (two taps, two workers, client vs server) racing on one entity;
   single "pending" slots that a second action overwrites or a first completion clears.
 - **Lifetime** — in-memory machines whose owner (widget, auto-disposed provider, request scope)
@@ -84,8 +104,8 @@ Then check, per machine:
 
 | Finding | Meaning |
 |---|---|
-| **Stuck** | Reachable state with no exit on some path (error set by cron but only cleared by a manual action; `running` with no sweeper) |
-| **Dead** | Declared state nothing ever writes (`queued` that is only a column default; enum values only rendered) |
+| **Stuck** | Reachable state with no exit on some path (error set by cron but only cleared by a manual action; `running` with no sweeper; a half-written row a skip-if-exists check never revisits; a leftover staging folder) |
+| **Dead** | Declared state nothing ever writes (`queued` that is only a column default; enum values only rendered; an allowlist entry naming a key nothing writes) |
 | **Unguarded** | A writer that can move an entity backwards or out of a state other paths protect |
 | **Stale** | A persisted copy of a derived state that is only refreshed on some writes |
 | **Racy** | Two writers or overlapping in-flight operations that can lose an update |

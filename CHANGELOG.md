@@ -22,6 +22,11 @@ Version numbers track `.claude-plugin/plugin.json` (kept in sync with the root
   busy flags, optimistic-update layers), trace every writer to `file:line`, and flag stuck, dead,
   unguarded, stale and racy states. Read-only. The reviewer checks state writes against it, and
   the prompt router sends state-machine and lifecycle questions to it.
+  It also covers on-device storage, leftover staging files, a row's existence used as the state,
+  transitions split across several writes, the states schedulers and sweepers select, and
+  allowlist keys that don't match the keys written. Ships a stdlib-only `scripts/busy_flags.py`
+  that lists each busy flag's set/reset lines, `finally`/`catch` resets, `mounted` checks and
+  guards (Dart by default; `--ext .ts,.tsx` for TypeScript).
 
 ## [0.12.0] - 2026-10-24
 
