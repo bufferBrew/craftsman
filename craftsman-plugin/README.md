@@ -12,8 +12,8 @@
 </p>
 
 A Claude Code plugin that makes engineering discipline the default: the smallest correct change,
-no fix without a root cause, and an honest report of what was actually verified. Fifteen agents, eight
-skills, eight slash commands, and a cross-platform hook system. Agents run on Claude by default,
+no fix without a root cause, and an honest report of what was actually verified. Fifteen agents, ten
+skills, nine slash commands, and a cross-platform hook system. Agents run on Claude by default,
 with opt-in Fable, other providers behind a gateway, or an export to Codex CLI (see *Models and providers*).
 
 ## Why craftsman
