@@ -5,8 +5,8 @@
 # craftsman — Claude Code plugin marketplace
 
 <p align="center">
-  <a href="https://github.com/bufferbrewlabs/craftsman/actions/workflows/validate.yml"><img src="https://github.com/bufferbrewlabs/craftsman/actions/workflows/validate.yml/badge.svg" alt="validate"></a>
-  <a href="./craftsman-plugin/.claude-plugin/plugin.json"><img src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fbufferbrewlabs%2Fcraftsman%2Fmain%2Fcraftsman-plugin%2F.claude-plugin%2Fplugin.json&query=%24.version&label=version&color=blue" alt="version"></a>
+  <a href="https://github.com/kartikjain-dev/craftsman/actions/workflows/validate.yml"><img src="https://github.com/kartikjain-dev/craftsman/actions/workflows/validate.yml/badge.svg" alt="validate"></a>
+  <a href="./craftsman-plugin/.claude-plugin/plugin.json"><img src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fkartikjain-dev%2Fcraftsman%2Fmain%2Fcraftsman-plugin%2F.claude-plugin%2Fplugin.json&query=%24.version&label=version&color=blue" alt="version"></a>
   <a href="https://code.claude.com/docs/en/plugin-marketplaces"><img src="https://img.shields.io/badge/Claude%20Code-plugin-d97757" alt="Claude Code plugin"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="MIT license"></a>
 </p>
@@ -23,14 +23,14 @@ hook system — installable in two commands.
 ## Install
 
 ```
-claude plugin marketplace add bufferbrewlabs/craftsman
+claude plugin marketplace add kartikjain-dev/craftsman
 claude plugin install craftsman@craftsman
 ```
 
 Or from inside a Claude Code session:
 
 ```
-/plugin marketplace add bufferbrewlabs/craftsman
+/plugin marketplace add kartikjain-dev/craftsman
 /plugin install craftsman@craftsman
 ```
 
