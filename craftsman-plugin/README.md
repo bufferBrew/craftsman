@@ -1,14 +1,14 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/bufferbrewlabs/craftsman/main/craftsman-logo.png" alt="craftsman" width="240">
+  <img src="https://raw.githubusercontent.com/kartikjain-dev/craftsman/main/craftsman-logo.png" alt="craftsman" width="240">
 </p>
 
 # craftsman
 
 <p align="center">
-  <a href="https://github.com/bufferbrewlabs/craftsman/actions/workflows/validate.yml"><img src="https://github.com/bufferbrewlabs/craftsman/actions/workflows/validate.yml/badge.svg" alt="validate"></a>
-  <a href="https://github.com/bufferbrewlabs/craftsman/blob/main/craftsman-plugin/.claude-plugin/plugin.json"><img src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fbufferbrewlabs%2Fcraftsman%2Fmain%2Fcraftsman-plugin%2F.claude-plugin%2Fplugin.json&query=%24.version&label=version&color=blue" alt="version"></a>
+  <a href="https://github.com/kartikjain-dev/craftsman/actions/workflows/validate.yml"><img src="https://github.com/kartikjain-dev/craftsman/actions/workflows/validate.yml/badge.svg" alt="validate"></a>
+  <a href="https://github.com/kartikjain-dev/craftsman/blob/main/craftsman-plugin/.claude-plugin/plugin.json"><img src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fkartikjain-dev%2Fcraftsman%2Fmain%2Fcraftsman-plugin%2F.claude-plugin%2Fplugin.json&query=%24.version&label=version&color=blue" alt="version"></a>
   <a href="https://code.claude.com/docs/en/plugin-marketplaces"><img src="https://img.shields.io/badge/Claude%20Code-plugin-d97757" alt="Claude Code plugin"></a>
-  <a href="https://github.com/bufferbrewlabs/craftsman/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="MIT license"></a>
+  <a href="https://github.com/kartikjain-dev/craftsman/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="MIT license"></a>
 </p>
 
 A Claude Code plugin that makes engineering discipline the default: the smallest correct change,
@@ -30,7 +30,7 @@ with opt-in Fable, other providers behind a gateway, or an export to Codex CLI (
 ## 30-second start
 
 ```
-claude plugin marketplace add bufferbrewlabs/craftsman
+claude plugin marketplace add kartikjain-dev/craftsman
 claude plugin install craftsman@craftsman
 ```
 
@@ -136,11 +136,11 @@ This repository is itself a marketplace (`.claude-plugin/marketplace.json` at th
 the plugin with `"source": "./craftsman-plugin"`). Install directly:
 
 ```
-claude plugin marketplace add bufferbrewlabs/craftsman
+claude plugin marketplace add kartikjain-dev/craftsman
 claude plugin install craftsman@craftsman
 ```
 
-Or from inside a session: `/plugin marketplace add bufferbrewlabs/craftsman` then
+Or from inside a session: `/plugin marketplace add kartikjain-dev/craftsman` then
 `/plugin install craftsman@craftsman`.
 
 Restart Claude Code (or start a new session) after installing. Verify with `claude plugin list`
